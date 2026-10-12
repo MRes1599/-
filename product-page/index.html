@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Page Template</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<main class="product-page">
+
+  <!-- ============ GALLERY ============ -->
+  <section class="product-gallery">
+
+    <div class="product-gallery__main">
+      <img class="product-gallery__main-image" src="https://placehold.co/800x800?text=Main+Product+Image" alt="Product main image">
+
+      <div class="product-gallery__badge product-gallery__badge--top-right">
+        <span class="badge-circle">
+          <span class="badge-circle__line-1">#1</span>
+          <span class="badge-circle__line-2">CATEGORY</span>
+          <span class="badge-circle__line-3">2026</span>
+        </span>
+      </div>
+
+      <div class="product-gallery__badge product-gallery__badge--mid-right">
+        <span class="badge-circle badge-circle--outline">
+          <span class="badge-circle__check">&#10003;</span>
+          <span class="badge-circle__line-1">LABEL</span>
+          <span class="badge-circle__line-2">Eligible</span>
+        </span>
+      </div>
+
+      <div class="product-gallery__compat">
+        <span class="compat-item">
+          <span class="compat-item__icon">&#9825;</span>
+          <span class="compat-item__label">Works With App A</span>
+        </span>
+        <span class="compat-item">
+          <span class="compat-item__icon">&#10084;</span>
+          <span class="compat-item__label">Works With App B</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="product-gallery__thumbs">
+      <button class="product-gallery__thumb product-gallery__thumb--active">
+        <img src="https://placehold.co/150x150?text=1" alt="Thumbnail 1">
+      </button>
+      <button class="product-gallery__thumb">
+        <img src="https://placehold.co/150x150?text=2" alt="Thumbnail 2">
+      </button>
+      <button class="product-gallery__thumb">
+        <img src="https://placehold.co/150x150?text=3" alt="Thumbnail 3">
+      </button>
+      <button class="product-gallery__thumb">
+        <img src="https://placehold.co/150x150?text=4" alt="Thumbnail 4">
+      </button>
+      <button class="product-gallery__thumb">
+        <img src="https://placehold.co/150x150?text=5" alt="Thumbnail 5">
+      </button>
+      <button class="product-gallery__thumb">
+        <img src="https://placehold.co/150x150?text=6" alt="Thumbnail 6">
+      </button>
+    </div>
+
+  </section>
+
+  <!-- ============ PRODUCT INFO ============ -->
+  <section class="product-info">
+
+    <div class="product-info__top-row">
+      <span class="tag tag--sale">FLASH SALE</span>
+      <span class="rating">
+        <span class="rating__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <span class="rating__count">(0,000)</span>
+      </span>
+    </div>
+
+    <h1 class="product-info__title">Product Name</h1>
+    <p class="product-info__subtitle">Short one-line value proposition</p>
+
+    <div class="product-info__price-row">
+      <span class="price price--was">$000</span>
+      <span class="price price--now">$000</span>
+      <span class="price-divider">or</span>
+      <span class="pay-plan">
+        <span class="pay-plan__badge">Pay</span>
+        NN payments of $00.00
+      </span>
+    </div>
+
+    <p class="product-info__description">
+      Two to three sentences describing the product, what problem it solves,
+      and what the buyer gets out of using it day to day.
+    </p>
+
+    <ul class="feature-grid">
+      <li class="feature-grid__item">
+        <span class="feature-grid__icon">&#8635;</span>
+        <span>00-day refund policy</span>
+      </li>
+      <li class="feature-grid__item">
+        <span class="feature-grid__icon">&#127760;</span>
+        <span>Free worldwide shipping</span>
+      </li>
+      <li class="feature-grid__item">
+        <span class="feature-grid__icon">&#128241;</span>
+        <span>Free app included</span>
+      </li>
+      <li class="feature-grid__item">
+        <span class="feature-grid__icon">&#128666;</span>
+        <span>Ships by [date]</span>
+      </li>
+    </ul>
+
+    <div class="addons">
+      <h2 class="addons__title">Choose your optional add-ons:</h2>
+      <p class="addons__subtitle">
+        Optional note explaining what the add-on covers or extends.
+      </p>
+
+      <label class="addon-card">
+        <div class="addon-card__row">
+          <input type="checkbox" class="addon-card__checkbox">
+          <span class="addon-card__name">Add-on name</span>
+          <span class="addon-card__price">
+            <span class="price price--was price--small">$00</span>
+            <span class="price price--now price--small">$00</span>
+          </span>
+        </div>
+        <ul class="addon-card__list">
+          <li>First benefit of this add-on.</li>
+          <li>Second benefit of this add-on.</li>
+        </ul>
+        <img class="addon-card__image" src="https://placehold.co/100x100?text=Icon" alt="Add-on icon">
+      </label>
+    </div>
+
+    <button class="cta-button">
+      Add to Cart <span class="cta-button__price">$000 <s>$000</s></span>
+    </button>
+
+    <p class="stock-note">
+      <span class="stock-note__dot"></span>
+      In Stock: US orders ship by [date]
+    </p>
+
+    <div class="guarantee-box">
+      <img class="guarantee-box__seal" src="https://placehold.co/80x80?text=00" alt="Guarantee seal">
+      <div class="guarantee-box__text">
+        <strong>Not satisfied within 00 days? Get a full refund</strong>
+        <p>Short reassurance sentence about the return policy and confidence in the product.</p>
+      </div>
+    </div>
+
+    <p class="finance-note">
+      Eligible for [program]. <a href="#">Learn more</a>
+    </p>
+
+  </section>
+
+  <!-- ============ TABS ============ -->
+  <section class="product-tabs">
+    <div class="product-tabs__nav">
+      <button class="product-tabs__tab product-tabs__tab--active" data-tab="benefits">BENEFITS</button>
+      <button class="product-tabs__tab" data-tab="measures">WHAT IT MEASURES</button>
+      <button class="product-tabs__tab" data-tab="how-to-use">HOW TO USE</button>
+    </div>
+
+    <div class="product-tabs__panel product-tabs__panel--active" id="tab-benefits">
+      <h3>What it unlocks</h3>
+      <ul class="checklist">
+        <li>First benefit statement.</li>
+        <li>Second benefit statement.</li>
+        <li>Third benefit statement.</li>
+        <li>Fourth benefit statement.</li>
+        <li>Fifth benefit statement.</li>
+        <li>Sixth benefit statement.</li>
+      </ul>
+
+      <blockquote class="testimonial">
+        <p class="testimonial__quote">"A short, punchy customer quote goes here."</p>
+        <p class="testimonial__body">
+          Longer supporting sentence expanding on the quote and the customer's experience.
+        </p>
+        <footer class="testimonial__footer">
+          <img class="testimonial__avatar" src="https://placehold.co/60x60?text=%F0%9F%99%82" alt="Reviewer avatar">
+          <span class="testimonial__name">REVIEWER NAME, credential</span>
+          <span class="testimonial__verified">VERIFIED REVIEW</span>
+        </footer>
+      </blockquote>
+    </div>
+
+    <div class="product-tabs__panel" id="tab-measures">
+      <p>Content describing what the product measures goes here.</p>
+    </div>
+
+    <div class="product-tabs__panel" id="tab-how-to-use">
+      <p>Content describing how to use the product goes here.</p>
+    </div>
+  </section>
+
+  <!-- ============ ACCORDION ============ -->
+  <section class="accordion">
+    <h2 class="accordion__title">Looking for more information?</h2>
+
+    <div class="accordion__item">
+      <button class="accordion__header">
+        <span>About the app</span>
+        <span class="accordion__icon">+</span>
+      </button>
+      <div class="accordion__body">
+        <p>Details about the companion app go here.</p>
+      </div>
+    </div>
+
+    <div class="accordion__item">
+      <button class="accordion__header">
+        <span>Difference between version 1.0 and 2.0?</span>
+        <span class="accordion__icon">+</span>
+      </button>
+      <div class="accordion__body">
+        <p>Comparison details go here.</p>
+      </div>
+    </div>
+
+    <div class="accordion__item">
+      <button class="accordion__header">
+        <span>Technical specifications</span>
+        <span class="accordion__icon">+</span>
+      </button>
+      <div class="accordion__body">
+        <p>Spec list goes here.</p>
+      </div>
+    </div>
+
+    <div class="accordion__item">
+      <button class="accordion__header">
+        <span>FAQs</span>
+        <span class="accordion__icon">+</span>
+      </button>
+      <div class="accordion__body">
+        <p>FAQ content goes here.</p>
+      </div>
+    </div>
+
+    <div class="accordion__item">
+      <button class="accordion__header">
+        <span>Shipping &amp; returns</span>
+        <span class="accordion__icon">+</span>
+      </button>
+      <div class="accordion__body">
+        <p>Shipping and returns policy goes here.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CALLOUT ============ -->
+  <aside class="callout">
+    <p class="callout__title">&#127942; Award-line headline</p>
+    <p class="callout__body">Supporting sentence reinforcing the product's core promise.</p>
+    <ul class="checklist">
+      <li>First supporting point.</li>
+      <li>Second supporting point.</li>
+      <li>Third supporting point.</li>
+    </ul>
+  </aside>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
