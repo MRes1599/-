@@ -1,0 +1,1482 @@
+{% if request.page_type == 'product' and product.id == 10245655200027 %}
+{% liquid
+  assign as_variant = product.selected_or_first_available_variant
+  assign as_buy_image = as_variant.featured_image | default: product.featured_image
+  assign as_card_image = 'https://cdn.shopify.com/s/files/1/0997/9314/2043/files/hf_20261111_141249_78f4fa20-4fe2-4c04-9429-d523ce1540ec_min.webp?v=1794407648'
+  assign as_uid = 'as-buy-' | append: section.id
+  assign as_currency = cart.currency.iso_code | default: shop.currency
+
+  assign as_v4 = all_products['anox-v4']
+  assign as_v4_variant = as_v4.variants | where: 'id', 51925168292123 | first
+  assign as_bundle_price = 21000
+  assign as_bundle_available = false
+
+  if as_currency == 'ILS' and as_v4_variant.available and as_v4_variant.price == 24900
+    assign as_bundle_available = true
+  endif
+
+  assign as_v4_image = 'https://cdn.shopify.com/s/files/1/0997/9314/2043/files/ANOX_V4_Black_11e69b5a-2281-4cea-8b4b-184d847d3610.png?v=1793796908'
+%}
+
+<anox-scale-purchase-v5
+  class="as-buy"
+  id="anox-scale-buy-{{ product.id }}"
+  data-cart-url="{{ routes.cart_url }}"
+  data-currency="{{ as_currency }}"
+  dir="rtl"
+  aria-labelledby="{{ as_uid }}-title"
+>
+  <div class="as-buy__layout">
+
+    <div class="as-buy__intro">
+      <h2 id="{{ as_uid }}-title">
+        {{ product.title | escape }}
+      </h2>
+
+      <div class="as-buy__price" aria-live="polite" aria-atomic="true">
+        <del
+          data-compare
+          aria-label="מחיר קודם"
+          {% unless as_variant.compare_at_price > as_variant.price %}hidden{% endunless %}
+        >
+          {{ as_variant.compare_at_price | money }}
+        </del>
+
+        <strong data-price aria-label="מחיר נוכחי">
+          {{ as_variant.price | money }}
+        </strong>
+      </div>
+
+      <p class="as-buy__description">
+        משקל חכם עם ידית מדידה, תצוגה מובנית
+        וחיבור לאפליקציה למעקב אחר המדידות שלכם.
+      </p>
+    </div>
+
+    <div class="as-buy__gallery">
+      {% if as_buy_image != blank %}
+        <img
+          class="as-buy__main"
+          data-main-image
+          src="{{ as_buy_image | image_url: width: 1200 }}"
+          alt="{{ as_buy_image.alt | default: product.title | escape }}"
+          width="{{ as_buy_image.width }}"
+          height="{{ as_buy_image.height }}"
+          loading="lazy"
+        >
+      {% endif %}
+
+      <div class="as-buy__thumbs" aria-label="תמונות המוצר">
+        {% for as_image in product.images %}
+          <button
+            type="button"
+            data-image="{{ as_image | image_url: width: 1200 }}"
+            data-alt="{{ as_image.alt | default: product.title | escape }}"
+            aria-label="תמונת מוצר {{ forloop.index }}"
+            aria-pressed="{% if as_image.id == as_buy_image.id %}true{% else %}false{% endif %}"
+          >
+            <img
+              src="{{ as_image | image_url: width: 160 }}"
+              alt=""
+              width="{{ as_image.width }}"
+              height="{{ as_image.height }}"
+              loading="lazy"
+            >
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="as-buy__purchase">
+      <form
+        method="post"
+        action="{{ routes.cart_add_url }}"
+        accept-charset="UTF-8"
+        data-buy-form
+      >
+        <input type="hidden" name="quantity" value="1">
+
+        <h3 class="as-buy__selection-title">המשקל שלכם</h3>
+
+        <div class="as-buy__included">
+          <img
+            data-scale-only-image
+            src="{{ as_card_image | escape }}"
+            alt="{{ product.title | escape }}"
+            width="68"
+            height="68"
+            loading="lazy"
+          >
+
+          <div>
+            <strong>{{ product.title | escape }}</strong>
+
+            <span
+              data-included-title
+              {% if product.has_only_default_variant %}hidden{% endif %}
+            >
+              {{ as_variant.title | escape }}
+            </span>
+
+            <span data-included-price>
+              {{ as_variant.price | money }}
+            </span>
+          </div>
+
+          <small data-included-status>
+            {% if as_variant.available %}
+              ✓ נבחר
+            {% else %}
+              אזל מהמלאי
+            {% endif %}
+          </small>
+        </div>
+
+        <div
+          class="as-buy__variant"
+          {% if product.has_only_default_variant %}hidden{% endif %}
+        >
+          <label for="{{ as_uid }}-variant">בחרו אפשרות</label>
+
+          <select id="{{ as_uid }}-variant" name="id" data-variant>
+            {% for as_option in product.variants %}
+              {% assign as_option_image = as_option.featured_image | default: product.featured_image %}
+
+              <option
+                value="{{ as_option.id }}"
+                data-title="{{ as_option.title | escape }}"
+                data-available="{{ as_option.available }}"
+                data-price="{{ as_option.price | money | escape }}"
+                data-cents="{{ as_option.price }}"
+                data-old-cents="{{ as_option.compare_at_price | default: 0 }}"
+                data-compare="{% if as_option.compare_at_price > as_option.price %}{{ as_option.compare_at_price | money | escape }}{% endif %}"
+                data-image="{% if as_option_image != blank %}{{ as_option_image | image_url: width: 1200 }}{% endif %}"
+                data-thumb="{% if as_option_image != blank %}{{ as_option_image | image_url: width: 180 }}{% endif %}"
+                data-alt="{{ as_option_image.alt | default: product.title | escape }}"
+                {% if as_option.id == as_variant.id %}selected{% endif %}
+              >
+                {{ as_option.title | escape }}
+                {% unless as_option.available %} — אזל מהמלאי{% endunless %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {% if as_bundle_available %}
+          <fieldset class="as-buy__bundle" data-bundle-offer hidden>
+            <legend class="as-buy__bundle-legend">
+              <span class="as-buy__bundle-badge">
+                יותר מ־15% הנחה על הצמיד
+              </span>
+            </legend>
+
+            <div class="as-buy__bundle-heading">
+              <h3>החבילה המושלמת לתמונה רחבה יותר</h3>
+
+              <p>
+                קבלו גם מעקב אחרי השינה, דופק הלב, לחץ דם,
+                קלוריות ששרפתם, צעדים ועוד.
+                בשביל לקבל את התמונה המלאה של הבריאות שלכם
+              </p>
+            </div>
+
+            <label
+              class="as-buy__bundle-choice"
+              for="{{ as_uid }}-bundle"
+            >
+              <input
+                type="checkbox"
+                id="{{ as_uid }}-bundle"
+                data-bundle-toggle
+                data-id="{{ as_v4_variant.id }}"
+                data-regular="{{ as_v4_variant.price }}"
+                data-offer="{{ as_bundle_price }}"
+              >
+
+              <img
+                src="{{ as_v4_image | escape }}"
+                alt="ANOX V4 שחור עם רצועה קלאסית"
+                width="100"
+                height="110"
+                loading="lazy"
+              >
+
+              <span class="as-buy__bundle-product">
+                <strong>ANOX V4</strong>
+                <span>שחור · רצועה קלאסית</span>
+
+                <span class="as-buy__bundle-price">
+                  <s>{{ as_v4_variant.price | money }}</s>
+                  <b>{{ as_bundle_price | money }}</b>
+                </span>
+              </span>
+            </label>
+          </fieldset>
+        {% endif %}
+
+        <button
+          class="as-buy__submit"
+          type="submit"
+          data-submit
+          {% unless as_variant.available %}disabled{% endunless %}
+        >
+          <span data-submit-label>
+            {% if as_variant.available %}
+              הוספה לסל
+            {% else %}
+              אזל מהמלאי
+            {% endif %}
+          </span>
+
+          <span
+            class="as-buy__cta-prices"
+            data-cta-prices
+            {% unless as_variant.available %}hidden{% endunless %}
+          >
+            <s
+              data-cta-compare
+              {% unless as_variant.compare_at_price > as_variant.price %}hidden{% endunless %}
+            >
+              {{ as_variant.compare_at_price | money }}
+            </s>
+
+            <span data-cta-price>
+              {{ as_variant.price | money }}
+            </span>
+          </span>
+        </button>
+
+        <p
+          class="as-buy__status"
+          data-status
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <a
+          class="as-buy__cart-link"
+          href="{{ routes.cart_url }}"
+          data-cart-link
+          hidden
+        >
+          לצפייה בסל הקניות ←
+        </a>
+      </form>
+
+      <div class="as-buy__trust">
+        <span>תשלום מאובטח</span>
+        <span>שירות לקוחות</span>
+        <span>חיבור לאפליקציה</span>
+      </div>
+
+      <div class="as-buy__faq">
+        <details name="{{ as_uid }}-faq">
+          <summary>
+            פרטים
+            <span aria-hidden="true">+</span>
+          </summary>
+
+          <div>
+            <p>
+              משקל חכם עם ידית מדידה, תצוגה מובנית
+              וחיבור Bluetooth לאפליקציה.
+              אפשר לצפות במדידות ולחזור לנתונים קודמים
+              למעקב לאורך זמן.
+            </p>
+          </div>
+        </details>
+
+        <details name="{{ as_uid }}-faq">
+          <summary>
+            משלוח, החזרות ואחריות
+            <span aria-hidden="true">+</span>
+          </summary>
+
+          <div>
+            <p>
+              אפשרויות המשלוח והעלות מוצגות בקופה.
+              למידע על זמני אספקה והחזרות,
+              ניתן לפנות לשירות הלקוחות.
+            </p>
+
+            {% if shop.shipping_policy.url != blank %}
+              <p>
+                <a href="{{ shop.shipping_policy.url }}">
+                  למדיניות המשלוחים
+                </a>
+              </p>
+            {% endif %}
+
+            {% if shop.refund_policy.url != blank %}
+              <p>
+                <a href="{{ shop.refund_policy.url }}">
+                  למדיניות ההחזרות
+                </a>
+              </p>
+            {% endif %}
+
+            <h4>אחריות ושירות</h4>
+
+            <p>
+              לבירור תנאי האחריות עבור
+              {{ product.title | escape }}
+              ולקבלת שירות, ניתן לפנות אלינו בטלפון
+              <a href="tel:+972515508143" dir="ltr">0515508143</a>.
+            </p>
+          </div>
+        </details>
+
+        <details name="{{ as_uid }}-faq">
+          <summary>
+            אילו נתונים אפשר לראות?
+            <span aria-hidden="true">+</span>
+          </summary>
+
+          <div>
+            <p>
+              משקל, BMI ואומדנים להרכב הגוף,
+              ובהם אחוז שומן, מסת שריר ואחוז מים.
+              הנתונים מוצגים באפליקציה לצד מדידות קודמות.
+            </p>
+          </div>
+        </details>
+
+        <details name="{{ as_uid }}-faq">
+          <summary>
+            איך מחברים את המשקל לטלפון?
+            <span aria-hidden="true">+</span>
+          </summary>
+
+          <div>
+            <p>
+              מורידים את האפליקציה באמצעות הקישור
+              או קוד ה־QR שבהוראות המוצר,
+              מפעילים Bluetooth ופועלים לפי הוראות החיבור.
+            </p>
+          </div>
+        </details>
+
+        <details name="{{ as_uid }}-faq">
+          <summary>
+            איך כדאי לבצע מדידות?
+            <span aria-hidden="true">+</span>
+          </summary>
+
+          <div>
+            <p>
+              פועלים לפי הוראות השימוש, על משטח קשיח וישר
+              ובתנאים דומים בין המדידות.
+              מדדי הרכב הגוף הם אומדנים למעקב אישי
+              ואינם תחליף לבדיקה רפואית.
+            </p>
+          </div>
+        </details>
+      </div>
+
+      <anox-scale-videos-v1
+        class="as-scale-clips"
+        aria-label="סרטוני המוצר"
+      >
+        {% assign as_clip_urls = 'https://cdn.shopify.com/videos/c/o/v/762b5ddc1dbf49a29588a9ff79d83856.mp4|https://cdn.shopify.com/videos/c/o/v/0fd3f39c39e849a8b844d52a18005934.mp4|https://cdn.shopify.com/videos/c/o/v/6ffd70672199451bb0cc7bf5629281a6.mp4|https://cdn.shopify.com/videos/c/o/v/5d45622abc8f4c8bb26133ec1748d3f1.mp4' | split: '|' %}
+
+        <div class="as-scale-clips__grid">
+          {% for as_clip_url in as_clip_urls %}
+            <a
+              class="as-scale-clips__card"
+              href="{{ as_clip_url | escape }}"
+              target="_blank"
+              rel="noopener"
+              data-scale-video
+              aria-label="ניגון סרטון {{ forloop.index }}"
+              aria-haspopup="dialog"
+              aria-controls="{{ as_uid }}-video-dialog"
+            >
+              <video
+                src="{{ as_clip_url | escape }}#t=0.3"
+                muted
+                playsinline
+                preload="none"
+                tabindex="-1"
+                aria-hidden="true"
+              ></video>
+
+              <span
+                class="as-scale-clips__play"
+                aria-hidden="true"
+              ></span>
+            </a>
+          {% endfor %}
+        </div>
+
+        <dialog
+          class="as-scale-clips__dialog"
+          id="{{ as_uid }}-video-dialog"
+          aria-label="צפייה בסרטון המוצר"
+        >
+          <button
+            class="as-scale-clips__close"
+            type="button"
+            data-scale-video-close
+            aria-label="סגירת הסרטון"
+          >
+            ×
+          </button>
+
+          <video
+            data-scale-video-player
+            controls
+            playsinline
+            preload="metadata"
+            aria-label="סרטון המוצר"
+          ></video>
+
+          <p
+            class="as-scale-clips__status"
+            data-scale-video-status
+            role="status"
+            hidden
+          ></p>
+
+          <a
+            class="as-scale-clips__fallback"
+            data-scale-video-fallback
+            target="_blank"
+            rel="noopener"
+            hidden
+          >
+            לפתיחת הסרטון בחלון חדש
+          </a>
+        </dialog>
+      </anox-scale-videos-v1>
+
+    </div>
+  </div>
+</anox-scale-purchase-v5>
+
+<style>
+.as-buy,.as-buy *{box-sizing:border-box}
+.as-buy{display:block;padding:40px 16px;background:#fff;color:#182238;font-family:inherit;text-align:right;scroll-margin-top:110px}
+.as-buy [hidden]{display:none!important}
+.as-buy__layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);grid-template-areas:"gallery intro" "gallery purchase";grid-template-rows:auto 1fr;gap:24px 40px;max-width:1180px;margin:auto;align-items:start}
+.as-buy__intro{grid-area:intro;min-width:0}
+.as-buy__gallery{grid-area:gallery;min-width:0}
+.as-buy__purchase{grid-area:purchase;min-width:0}
+
+.as-buy h2{font-family:inherit;font-size:clamp(28px,3.4vw,44px);font-weight:700;line-height:1.25;color:#111;margin:0 0 18px}
+.as-buy__price{display:flex;align-items:baseline;flex-wrap:wrap;gap:9px;direction:rtl}
+.as-buy__price strong{font-size:25px;font-weight:400;color:#444;white-space:nowrap;unicode-bidi:isolate}
+.as-buy__price del{font-size:20px;font-weight:400;color:#ff202c;text-decoration-thickness:1px;white-space:nowrap;unicode-bidi:isolate}
+.as-buy__description{font-size:14px;line-height:1.8;color:#687080;margin:18px 0 0}
+
+.as-buy__main{display:block;width:100%;height:auto;border-radius:15px}
+.as-buy__thumbs{display:flex;gap:8px;margin-top:10px;padding:3px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+.as-buy__thumbs::-webkit-scrollbar{display:none}
+.as-buy__thumbs button{display:block;flex:0 0 auto;width:auto;height:64px;margin:0;padding:0;background:transparent;border:2px solid transparent;border-radius:9px;overflow:hidden;cursor:pointer}
+.as-buy__thumbs button[aria-pressed=true]{border-color:#1676ff}
+.as-buy__thumbs img{display:block;width:auto;height:100%;max-width:none}
+
+.as-buy form{margin:0}
+.as-buy .as-buy__selection-title{font-family:inherit;font-size:16px;font-weight:700;line-height:1.5;margin:0 0 12px;color:#182238}
+
+.as-buy__included{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1.5px solid #1676ff;
+  border-radius:13px;
+  background:#f4f8ff;
+}
+
+.as-buy__included>img{
+  display:block;
+  width:68px;
+  height:68px;
+  flex-shrink:0;
+  object-fit:contain;
+  object-position:center;
+  background:transparent;
+  border-radius:0;
+}
+
+.as-buy__included>div{display:flex;flex:1;flex-direction:column;gap:4px;font-size:12px;min-width:0}
+.as-buy__included strong{font-size:15px;line-height:1.5}
+.as-buy__included>small{font-size:11px;color:#1676ff;white-space:nowrap}
+
+.as-buy__variant{margin-top:16px}
+.as-buy__variant label{display:block;font-size:13px;margin-bottom:8px;color:#53647b}
+.as-buy__variant select{width:100%;min-height:46px;padding:10px 12px;border:1px solid #dce3ed;border-radius:12px;background:#fff;color:#182238;font-family:inherit;font-size:14px}
+
+.as-buy .as-buy__submit{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 9px;width:100%;min-height:49px;margin:22px 0 0;padding:13px 16px;border:0;border-radius:999px;background:#1676ff;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;box-shadow:none}
+.as-buy__submit::before,.as-buy__submit::after{display:none}
+.as-buy__cta-prices{display:flex;align-items:center;gap:7px;font-size:14px}
+.as-buy__cta-prices s{color:#c8dfff;font-size:12px;font-weight:400}
+.as-buy .as-buy__submit:disabled{background:#e1e3e6;color:#797e86;cursor:not-allowed}
+
+.as-buy button:focus-visible,.as-buy select:focus-visible,.as-buy a:focus-visible,.as-buy summary:focus-visible,.as-buy input:focus-visible{outline:3px solid #1676ff;outline-offset:3px}
+.as-buy__status{font-size:13px;line-height:1.7;color:#53647b;margin:12px 0 0}
+.as-buy__status:empty{display:none}
+.as-buy__cart-link{display:inline-block;font-size:13px;color:#1676ff;margin-top:10px;text-underline-offset:4px}
+.as-buy__trust{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;font-size:11px;color:#687080;padding:14px 0 0}
+.as-buy__trust span+span{border-right:1px solid #dce2eb;padding-right:8px}
+
+.as-buy__faq{display:grid;gap:7px;margin-top:24px;padding:7px;border-radius:17px;background:#f4f4f4}
+.as-buy__faq>details{min-width:0;border:0;border-radius:12px;background:#fff;overflow:hidden}
+.as-buy__faq summary{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:55px;padding:15px;color:#292929;font-size:14px;line-height:1.5;list-style:none;cursor:pointer}
+.as-buy__faq summary::-webkit-details-marker{display:none}
+.as-buy__faq summary::marker{content:""}
+.as-buy__faq summary::before,.as-buy__faq summary::after{display:none}
+.as-buy__faq summary>span{font-size:23px;font-weight:400;color:#777;line-height:1}
+.as-buy__faq details[open]>summary>span{transform:rotate(45deg)}
+.as-buy__faq details>div{padding:0 15px 20px;color:#717171;font-size:13px;line-height:1.85;overflow-wrap:anywhere}
+.as-buy__faq p{margin:0 0 12px}
+.as-buy__faq strong,.as-buy__faq h4{color:#252525}
+.as-buy__faq h4{font-family:inherit;font-size:14px;margin:15px 0 8px}
+.as-buy__faq a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+
+.as-buy__bundle{
+  display:block;
+  width:100%;
+  min-inline-size:0;
+  margin:24px 0 0;
+  padding:8px 17px 17px;
+  border:1px solid #cfdef4;
+  border-radius:16px;
+  background:linear-gradient(135deg,#f3f8ff,#fff);
+}
+
+.as-buy__bundle-legend{
+  display:table;
+  float:none;
+  width:auto;
+  max-width:calc(100% - 20px);
+  margin-inline:auto;
+  padding:0 10px;
+  border:0;
+  text-align:center;
+}
+
+.as-buy__bundle-badge{
+  display:inline-block;
+  background:#1676ff;
+  color:#fff;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:11px;
+  line-height:1.4;
+  text-align:center;
+}
+
+.as-buy .as-buy__bundle-heading h3{font-family:inherit;font-size:19px;font-weight:700;line-height:1.45;color:#182238;margin:12px 0 8px}
+.as-buy__bundle-heading p{font-size:13px;line-height:1.8;color:#53647b;margin:0 0 15px}
+
+.as-buy__bundle-choice{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border:1.5px solid #dae2ef;
+  border-radius:12px;
+  background:#fff;
+  cursor:pointer;
+}
+
+.as-buy__bundle-choice:has(input:checked){
+  border-color:#1676ff;
+  background:#eef5ff;
+  box-shadow:0 0 0 1px #1676ff;
+}
+
+.as-buy__bundle-choice input{
+  appearance:auto;
+  -webkit-appearance:checkbox;
+  position:static;
+  opacity:1;
+  width:19px;
+  height:19px;
+  flex:0 0 19px;
+  accent-color:#1676ff;
+  margin:0;
+  cursor:pointer;
+}
+
+.as-buy__bundle-choice img{
+  display:block;
+  width:100px;
+  height:110px;
+  object-fit:contain;
+  object-position:center;
+  border-radius:0;
+  border:0;
+  background:transparent;
+  padding:0;
+  box-shadow:none;
+  flex-shrink:0;
+}
+
+.as-buy__bundle-product{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px;font-size:12px;color:#53647b}
+.as-buy__bundle-product>strong{font-size:16px;color:#182238}
+.as-buy__bundle-price{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.as-buy__bundle-price s{font-size:12px;color:#888}
+.as-buy__bundle-price b{font-size:17px;color:#1676ff}
+
+@media(max-width:749px){
+  .as-buy{padding:28px 14px}
+  .as-buy__layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"intro" "gallery" "purchase";grid-template-rows:auto;gap:18px;max-width:540px}
+  .as-buy h2{font-size:28px}
+  .as-buy__price strong{font-size:24px}
+  .as-buy__price del{font-size:19px}
+  .as-buy__thumbs button{height:60px}
+  .as-buy__trust{font-size:10px}
+}
+
+@media(max-width:359px){
+  .as-buy__included{gap:8px;padding:10px}
+  .as-buy__included>img{width:54px;height:54px}
+  .as-buy__included strong{font-size:13px}
+  .as-buy__included>small{font-size:10px}
+  .as-buy__bundle{padding:7px 13px 13px}
+  .as-buy__bundle-choice{gap:7px;padding:9px}
+  .as-buy__bundle-choice img{width:82px;height:94px}
+  .as-buy .as-buy__bundle-heading h3{font-size:17px}
+}
+</style>
+
+<script>
+if (!customElements.get('anox-scale-purchase-v5')) {
+  customElements.define(
+    'anox-scale-purchase-v5',
+    class extends HTMLElement {
+      connectedCallback() {
+        this.initFrame = requestAnimationFrame(() => this.init());
+      }
+
+      disconnectedCallback() {
+        cancelAnimationFrame(this.initFrame);
+      }
+
+      init() {
+        if (this.ready) return;
+
+        this.form = this.querySelector('[data-buy-form]');
+        this.select = this.querySelector('[data-variant]');
+        this.button = this.querySelector('[data-submit]');
+        this.label = this.querySelector('[data-submit-label]');
+        this.ctaPrices = this.querySelector('[data-cta-prices]');
+        this.status = this.querySelector('[data-status]');
+        this.cartLink = this.querySelector('[data-cart-link]');
+        this.mainImage = this.querySelector('[data-main-image]');
+        this.offer = this.querySelector('[data-bundle-offer]');
+        this.toggle = this.querySelector('[data-bundle-toggle]');
+
+        if (!this.form || !this.select || !this.button) return;
+        this.ready = true;
+
+        this.state = 'idle';
+        this.busy = false;
+        this.offerUnavailable = false;
+
+        this.formatter = new Intl.NumberFormat('he-IL', {
+          style: 'currency',
+          currency: this.dataset.currency || 'ILS',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2
+        });
+
+        this.querySelectorAll('button[data-image]').forEach(button => {
+          button.addEventListener('click', () => {
+            this.showImage(
+              button.dataset.image,
+              button.dataset.alt
+            );
+          });
+        });
+
+        this.select.addEventListener('change', () => this.sync());
+
+        if (this.toggle) {
+          this.offer.hidden = false;
+          this.toggle.addEventListener('change', () => this.sync(false));
+        }
+
+        this.form.addEventListener('submit', event => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          this.addToCart();
+        }, true);
+
+        this.sync();
+      }
+
+      money(cents) {
+        return this.formatter.format(Number(cents) / 100);
+      }
+
+      showImage(src, alt) {
+        if (!this.mainImage || !src) return;
+
+        this.mainImage.src = src;
+        if (alt) this.mainImage.alt = alt;
+
+        this.querySelectorAll('button[data-image]').forEach(button => {
+          button.setAttribute(
+            'aria-pressed',
+            String(button.dataset.image === src)
+          );
+        });
+      }
+
+      sync(changeImage = true) {
+        const option = this.select.selectedOptions[0];
+        if (!option) return;
+
+        const available = option.dataset.available === 'true';
+        const price = Number(option.dataset.cents);
+        const old = Number(option.dataset.oldCents);
+
+        if (this.toggle && !available) {
+          this.toggle.checked = false;
+        }
+
+        const selected = Boolean(
+          this.toggle && this.toggle.checked
+        );
+
+        this.querySelector('[data-price]').textContent =
+          option.dataset.price;
+
+        const compare = this.querySelector('[data-compare]');
+        compare.textContent = option.dataset.compare || '';
+        compare.hidden = !option.dataset.compare;
+
+        this.querySelector('[data-included-price]').textContent =
+          option.dataset.price;
+
+        this.querySelector('[data-included-title]').textContent =
+          option.dataset.title;
+
+        this.querySelector('[data-included-status]').textContent =
+          available ? '✓ נבחר' : 'אזל מהמלאי';
+
+        const total =
+          price + (selected ? Number(this.toggle.dataset.offer) : 0);
+
+        const regular =
+          selected ? price + Number(this.toggle.dataset.regular) : old;
+
+        this.querySelector('[data-cta-price]').textContent =
+          this.money(total);
+
+        const ctaCompare =
+          this.querySelector('[data-cta-compare]');
+
+        ctaCompare.textContent =
+          regular > total ? this.money(regular) : '';
+
+        ctaCompare.hidden = regular <= total;
+
+        this.ctaPrices.hidden = !available;
+        this.button.disabled = !available;
+
+        this.label.textContent = !available
+          ? 'אזל מהמלאי'
+          : selected
+            ? 'הוספת החבילה לסל'
+            : 'הוספה לסל';
+
+        if (this.toggle) {
+          this.toggle.disabled =
+            !available || this.offerUnavailable;
+
+          const bundleTotal =
+            this.querySelector('[data-bundle-total]');
+
+          if (bundleTotal) {
+            bundleTotal.textContent = this.money(
+              price + Number(this.toggle.dataset.offer)
+            );
+          }
+
+          const bundleSelection =
+            this.querySelector('[data-bundle-selection]');
+
+          if (bundleSelection) {
+            bundleSelection.textContent = selected
+              ? '✓ הצמיד נבחר — שני המוצרים יתווספו לסל'
+              : 'סמנו להוספת הצמיד לחבילה';
+          }
+        }
+
+        if (changeImage && option.dataset.image) {
+          this.showImage(
+            option.dataset.image,
+            option.dataset.alt
+          );
+        }
+      }
+
+      async request(url, data) {
+        const controller = new AbortController();
+
+        const timer = setTimeout(() => {
+          controller.abort();
+        }, 20000);
+
+        try {
+          const response = await fetch(url, {
+            method: data ? 'POST' : 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json',
+              ...(data ? {'Content-Type': 'application/json'} : {})
+            },
+            ...(data ? {body: JSON.stringify(data)} : {})
+          });
+
+          let body;
+
+          try {
+            body = await response.json();
+          } catch (error) {}
+
+          if (!response.ok) {
+            const error = new Error(
+              typeof body?.description === 'string'
+                ? body.description
+                : 'לא ניתן להשלים את הבקשה כרגע.'
+            );
+
+            error.httpStatus = response.status;
+            throw error;
+          }
+
+          if (!body) {
+            throw new Error('לא התקבל אישור מהחנות.');
+          }
+
+          return body;
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      cart() {
+        return this.request(this.dataset.cartUrl + '.js');
+      }
+
+      bundleLines(cart, marker) {
+        return (cart.items || []).filter(item => {
+          return item.properties?._anox_scale_bundle === marker;
+        });
+      }
+
+      async removeBundle(marker) {
+        const cart = await this.cart();
+        const lines = this.bundleLines(cart, marker);
+
+        if (!lines.length) return;
+
+        const updates = {};
+
+        lines.forEach(item => {
+          updates[item.key] = Math.max(0, item.quantity - 1);
+        });
+
+        await this.request(
+          this.dataset.cartUrl + '/update.js',
+          {updates}
+        );
+
+        const checked = await this.cart();
+
+        if (this.bundleLines(checked, marker).length) {
+          throw new Error('יש לבדוק את החבילה בסל.');
+        }
+      }
+
+      async openCart() {
+        if (typeof window.essentialCartApi?.openCart === 'function') {
+          try {
+            await window.essentialCartApi.openCart();
+            return;
+          } catch (error) {}
+        }
+
+        window.location.assign(this.dataset.cartUrl);
+      }
+
+      async addToCart() {
+        if (this.busy) return;
+
+        if (this.state !== 'idle') {
+          await this.openCart();
+          return;
+        }
+
+        const option = this.select.selectedOptions[0];
+
+        if (!option || option.dataset.available !== 'true') return;
+
+        const bundle = Boolean(
+          this.toggle && this.toggle.checked
+        );
+
+        if (
+          !bundle &&
+          typeof window.essentialCartApi?.openCart !== 'function'
+        ) {
+          this.busy = true;
+          this.button.disabled = true;
+          HTMLFormElement.prototype.submit.call(this.form);
+          return;
+        }
+
+        this.busy = true;
+        this.button.disabled = true;
+        this.select.disabled = true;
+
+        if (this.toggle) {
+          this.toggle.disabled = true;
+        }
+
+        this.label.textContent = bundle
+          ? 'בודקים ומוסיפים את החבילה…'
+          : 'מוסיפים לסל…';
+
+        this.ctaPrices.hidden = true;
+        this.status.textContent = '';
+        this.cartLink.hidden = true;
+
+        let marker = '';
+        let postConfirmed = false;
+
+        try {
+          const items = [{
+            id: Number(option.value),
+            quantity: 1
+          }];
+
+          if (bundle) {
+            const before = await this.cart();
+
+            if (before.currency !== 'ILS') {
+              throw new Error(
+                'הטבת החבילה זמינה בתשלום בשקלים.'
+              );
+            }
+
+            const alreadyInCart = (before.items || []).some(item => {
+              return Number(item.variant_id) ===
+                Number(this.toggle.dataset.id);
+            });
+
+            if (alreadyInCart) {
+              throw new Error(
+                'הצמיד השחור כבר בסל. אפשר לבטל את סימון החבילה ולהוסיף את המשקל בלבד.'
+              );
+            }
+
+            marker = 'scale-v4-' + (
+              window.crypto?.randomUUID
+                ? window.crypto.randomUUID()
+                : Date.now() + '-' + Math.random().toString(36).slice(2)
+            );
+
+            items[0].properties = {
+              _anox_scale_bundle: marker
+            };
+
+            items.push({
+              id: Number(this.toggle.dataset.id),
+              quantity: 1,
+              properties: {
+                _anox_scale_bundle: marker
+              }
+            });
+          }
+
+          this.state = 'uncertain';
+
+          await this.request(
+            this.form.action + '.js',
+            {items}
+          );
+
+          postConfirmed = true;
+
+          if (bundle) {
+            let valid = false;
+
+            try {
+              const cart = await this.cart();
+              const lines = this.bundleLines(cart, marker);
+
+              const scale = lines.find(item => {
+                return Number(item.variant_id) === Number(option.value);
+              });
+
+              const band = lines.find(item => {
+                return Number(item.variant_id) ===
+                  Number(this.toggle.dataset.id);
+              });
+
+              valid =
+                cart.currency === 'ILS' &&
+                lines.length === 2 &&
+                scale?.quantity === 1 &&
+                band?.quantity === 1 &&
+                Number.isFinite(band.final_line_price) &&
+                band.final_line_price <= Number(this.toggle.dataset.offer) &&
+                Number.isFinite(scale.final_line_price) &&
+                scale.final_line_price <= Number(option.dataset.cents);
+            } catch (error) {}
+
+            if (!valid) {
+              await this.removeBundle(marker);
+
+              this.state = 'idle';
+              this.toggle.checked = false;
+              this.offerUnavailable = true;
+              this.offer.hidden = true;
+              this.sync(false);
+
+              throw new Error(
+                'הטבת החבילה אינה זמינה כרגע. שני הפריטים שהוספנו הוסרו מהסל; אפשר להוסיף את המשקל בלבד.'
+              );
+            }
+          }
+
+          this.state = 'added';
+
+          this.status.textContent = bundle
+            ? 'החבילה נוספה לסל והמחיר המוזל של הצמיד אומת.'
+            : 'המוצר נוסף לסל.';
+
+          this.cartLink.hidden = false;
+
+          await this.openCart();
+        } catch (error) {
+          if (
+            !bundle &&
+            !postConfirmed &&
+            error.httpStatus >= 400 &&
+            error.httpStatus < 500
+          ) {
+            this.state = 'idle';
+          }
+
+          this.status.textContent =
+            this.state === 'idle'
+              ? error.message
+              : bundle
+                ? 'לא ניתן לאשר את מצב החבילה וההנחה כרגע. בדקו את המחירים בסל לפני המשך לתשלום.'
+                : 'לא ניתן לאשר את מצב ההוספה כרגע. בדקו את הסל לפני הוספה נוספת.';
+
+          this.cartLink.hidden = false;
+        } finally {
+          this.busy = false;
+
+          const idle = this.state === 'idle';
+
+          this.select.disabled = !idle;
+
+          if (this.toggle) {
+            this.toggle.disabled =
+              !idle || this.offerUnavailable;
+          }
+
+          if (idle) {
+            this.sync(false);
+          } else {
+            this.button.disabled = false;
+            this.ctaPrices.hidden = true;
+            this.label.textContent = 'לצפייה בסל';
+          }
+        }
+      }
+    }
+  );
+}
+</script>
+
+<style>
+.as-scale-clips{
+  display:block;
+  width:100%;
+  min-width:0;
+  margin:24px 0 0;
+}
+
+.as-scale-clips__grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  direction:ltr;
+}
+
+.as-scale-clips .as-scale-clips__card{
+  display:block;
+  position:relative;
+  min-width:0;
+  aspect-ratio:9/16;
+  overflow:hidden;
+  border-radius:10px;
+  background:#eef0f3;
+  text-decoration:none;
+  border:0;
+  padding:0;
+  isolation:isolate;
+}
+
+.as-scale-clips__card>video{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;
+}
+
+.as-scale-clips__play{
+  position:absolute;
+  left:9px;
+  bottom:9px;
+  display:grid;
+  place-items:center;
+  width:29px;
+  height:29px;
+  border-radius:50%;
+  background:#1676ff;
+  pointer-events:none;
+}
+
+.as-scale-clips__play::before{
+  content:"";
+  display:block;
+  width:0;
+  height:0;
+  border-top:5px solid transparent;
+  border-bottom:5px solid transparent;
+  border-left:7px solid #fff;
+  margin-left:2px;
+}
+
+.as-scale-clips .as-scale-clips__card:focus-visible{
+  outline:3px solid #1676ff;
+  outline-offset:3px;
+}
+
+.as-scale-clips__dialog{
+  position:fixed;
+  inset:0;
+  width:min(420px,calc(100vw - 24px));
+  max-width:none;
+  max-height:calc(100dvh - 24px);
+  margin:auto;
+  padding:0;
+  overflow:auto;
+  border:0;
+  border-radius:16px;
+  background:#080808;
+  color:#fff;
+}
+
+.as-scale-clips__dialog:not([open]){
+  display:none;
+}
+
+.as-scale-clips__dialog::backdrop{
+  background:rgba(0,0,0,.72);
+}
+
+.as-scale-clips__dialog>video{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:calc(100dvh - 80px);
+  object-fit:contain;
+  background:#080808;
+}
+
+.as-scale-clips .as-scale-clips__close{
+  position:absolute;
+  z-index:2;
+  top:8px;
+  right:8px;
+  display:grid;
+  place-items:center;
+  width:38px;
+  height:38px;
+  min-height:0;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.94);
+  color:#111;
+  box-shadow:none;
+  font:400 28px/1 Arial,sans-serif;
+  cursor:pointer;
+}
+
+.as-scale-clips__close::before,
+.as-scale-clips__close::after{
+  display:none;
+}
+
+.as-scale-clips__status{
+  font-size:13px;
+  line-height:1.6;
+  text-align:center;
+  margin:0;
+  padding:12px 16px;
+  color:#fff;
+}
+
+.as-scale-clips__fallback{
+  display:block;
+  color:#fff;
+  font-size:13px;
+  text-align:center;
+  padding:0 16px 16px;
+  text-decoration:underline;
+}
+
+.as-scale-clips [hidden]{
+  display:none!important;
+}
+
+@media(max-width:749px){
+  .as-scale-clips__grid{
+    gap:6px;
+  }
+
+  .as-scale-clips__play{
+    width:22px;
+    height:22px;
+    left:6px;
+    bottom:6px;
+  }
+
+  .as-scale-clips__play::before{
+    border-top-width:4px;
+    border-bottom-width:4px;
+    border-left-width:6px;
+  }
+}
+</style>
+
+<script>
+if (!customElements.get('anox-scale-videos-v1')) {
+  customElements.define(
+    'anox-scale-videos-v1',
+    class extends HTMLElement {
+      connectedCallback() {
+        this.frame = requestAnimationFrame(() => this.init());
+      }
+
+      disconnectedCallback() {
+        cancelAnimationFrame(this.frame);
+        this.observer?.disconnect();
+
+        if (this.dialog?.open) {
+          this.dialog.close();
+        }
+
+        this.stop();
+        this.events?.abort();
+        this.ready = false;
+      }
+
+      init() {
+        if (this.ready || !this.isConnected) return;
+
+        this.dialog = this.querySelector('dialog');
+
+        this.player = this.querySelector(
+          '[data-scale-video-player]'
+        );
+
+        this.status = this.querySelector(
+          '[data-scale-video-status]'
+        );
+
+        this.fallback = this.querySelector(
+          '[data-scale-video-fallback]'
+        );
+
+        if (!this.dialog || !this.player) return;
+
+        this.ready = true;
+        this.events = new AbortController();
+
+        const options = {
+          signal: this.events.signal
+        };
+
+        this.querySelectorAll(
+          '[data-scale-video]'
+        ).forEach(card => {
+          card.addEventListener('click', event => {
+            if (
+              event.ctrlKey ||
+              event.metaKey ||
+              event.shiftKey ||
+              event.altKey
+            ) {
+              return;
+            }
+
+            if (typeof this.dialog.showModal !== 'function') {
+              return;
+            }
+
+            event.preventDefault();
+            this.open(card);
+          }, options);
+        });
+
+        this.querySelector(
+          '[data-scale-video-close]'
+        ).addEventListener('click', () => {
+          this.dialog.close();
+        }, options);
+
+        this.dialog.addEventListener('click', event => {
+          if (event.target !== this.dialog) return;
+
+          const rect = this.dialog.getBoundingClientRect();
+
+          if (
+            event.clientX < rect.left ||
+            event.clientX > rect.right ||
+            event.clientY < rect.top ||
+            event.clientY > rect.bottom
+          ) {
+            this.dialog.close();
+          }
+        }, options);
+
+        this.dialog.addEventListener('close', () => {
+          this.stop();
+
+          if (this.opener?.isConnected) {
+            this.opener.focus({
+              preventScroll: true
+            });
+          }
+        }, options);
+
+        this.player.addEventListener('error', () => {
+          if (!this.dialog.open) return;
+
+          this.status.textContent =
+            'לא ניתן להפעיל את הסרטון כרגע.';
+
+          this.status.hidden = false;
+          this.fallback.hidden = false;
+        }, options);
+
+        this.player.addEventListener('playing', () => {
+          this.status.hidden = true;
+          this.fallback.hidden = true;
+        }, options);
+
+        const loadPreviews = () => {
+          this.observer?.disconnect();
+
+          this.querySelectorAll(
+            '.as-scale-clips__card>video'
+          ).forEach(video => {
+            video.addEventListener('loadedmetadata', () => {
+              if (
+                Number.isFinite(video.duration) &&
+                video.duration > 0
+              ) {
+                try {
+                  video.currentTime = Math.min(
+                    0.3,
+                    video.duration / 2
+                  );
+                } catch (error) {}
+              }
+            }, {
+              once: true,
+              signal: this.events.signal
+            });
+
+            video.preload = 'metadata';
+            video.load();
+          });
+        };
+
+        if ('IntersectionObserver' in window) {
+          this.observer = new IntersectionObserver(entries => {
+            if (entries.some(entry => entry.isIntersecting)) {
+              loadPreviews();
+            }
+          }, {
+            rootMargin: '250px'
+          });
+
+          this.observer.observe(this);
+        } else {
+          loadPreviews();
+        }
+      }
+
+      open(card) {
+        this.stop();
+        this.opener = card;
+        this.status.hidden = true;
+        this.fallback.hidden = true;
+        this.fallback.href = card.href;
+        this.player.src = card.href;
+        this.player.muted = false;
+
+        this.player.setAttribute(
+          'aria-label',
+          card.getAttribute('aria-label')
+        );
+
+        if (!this.dialog.open) {
+          this.dialog.showModal();
+        }
+
+        const token = this.token;
+        const play = this.player.play();
+
+        if (play) {
+          play.catch(() => {
+            if (
+              this.token !== token ||
+              !this.dialog.open ||
+              this.player.error
+            ) {
+              return;
+            }
+
+            this.status.textContent =
+              'לחצו על כפתור הניגון בסרטון כדי להתחיל.';
+
+            this.status.hidden = false;
+          });
+        }
+      }
+
+      stop() {
+        this.token = (this.token || 0) + 1;
+
+        if (!this.player) return;
+
+        this.player.pause();
+        this.player.removeAttribute('src');
+        this.player.load();
+      }
+    }
+  );
+}
+</script>
+
+{% endif %}
