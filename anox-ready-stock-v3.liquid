@@ -310,6 +310,22 @@ if (!customElements.get('anox-ready-stock-v3')) {
       strapsReady() {
         if (!this.straps || !this.straps.length) return true;
 
+        /* זיהוי מדויק: כל רצועה מסומנת היא checkbox שהערך שלו הוא מזהה הווריאנט */
+        const strapInputs = Array.from(
+          document.querySelectorAll('input[data-strap]')
+        );
+
+        if (strapInputs.length) {
+          const byId = new Map(
+            this.straps.map(v => [String(v.id), v])
+          );
+
+          return strapInputs
+            .filter(input => input.checked)
+            .every(input => byId.get(String(input.value))?.ready === true);
+        }
+
+        /* גיבוי לעמודים בלי checkbox: זיהוי לפי טקסט הכרטיס והכותרת */
         const colors = Array.from(new Set(
           this.straps.flatMap(v => v.options || []).filter(o => !this.typeKey(o))
         )).sort((a, b) => b.length - a.length);
@@ -325,7 +341,7 @@ if (!customElements.get('anox-ready-stock-v3')) {
         if (!marks.length) return true;
 
         const headings = Array.from(
-          document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, div, span, strong, b, label')
+          document.querySelectorAll('h1, h2, h3, h4, h5, h6, legend, p, div, span, strong, b, label')
         ).filter(el => {
           const t = this.normalize(el.textContent);
           return t.length > 0 && t.length <= 25 && this.typeKey(t) && el.offsetParent !== null;
