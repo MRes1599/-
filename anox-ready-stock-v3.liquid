@@ -1,0 +1,573 @@
+{% if request.page_type == 'product' and product != blank %}
+  <span
+    hidden
+    data-anox-current-product-title="{{ product.title | escape }}"
+  ></span>
+
+  <script>
+  (function () {
+    function updateAnoxShipping() {
+      var source = document.querySelector(
+        '[data-anox-current-product-title]'
+      );
+
+      if (!source) return;
+
+      var title = source.getAttribute(
+        'data-anox-current-product-title'
+      ).trim();
+
+      var match = title.match(
+        /\bANOX\s+V\s*\d+(?:\s+Time)?\b/i
+      );
+
+      var model = match
+        ? match[0].replace(/\s+/g, ' ')
+        : title;
+
+      if (!model) return;
+
+      document.querySelectorAll(
+        'anox-complete-with-videos.axp, anox-v2-product-v3.av2'
+      ).forEach(function (root) {
+        var shipping = Array.from(
+          root.querySelectorAll(
+            '.axp-faq > details, .av2-faq > details'
+          )
+        ).find(function (item) {
+          var heading = item.querySelector('summary');
+
+          return heading &&
+            heading.textContent.includes('משלוח');
+        });
+
+        if (!shipping) return;
+
+        var answer = shipping.querySelector(
+          '.axp-answer, .av2-answer'
+        );
+
+        if (!answer) return;
+
+        /* הוספת פירוט אקספרס ללא כפילות */
+        if (!answer.textContent.includes('משלוח אקספרס')) {
+          var content = document.createElement('div');
+          content.setAttribute('data-anox-express-shipping', '');
+
+          content.innerHTML =
+            '<h4>משלוח אקספרס</h4>' +
+            '<p>משלוח אקספרס תוך <strong>1–3 ימי עסקים</strong>' +
+            ' למוצרים שבמלאי בארץ.</p>';
+
+          answer.prepend(content);
+        }
+
+        /* עדכון הדגם בפסקת האחריות לפי המוצר הנוכחי */
+        var warrantyHeading = Array.from(
+          answer.querySelectorAll('h4')
+        ).find(function (heading) {
+          return heading.textContent.trim() === 'אחריות ושירות';
+        });
+
+        var paragraph = warrantyHeading &&
+          warrantyHeading.nextElementSibling;
+
+        if (!paragraph || paragraph.tagName !== 'P') return;
+
+        var walker = document.createTreeWalker(
+          paragraph,
+          NodeFilter.SHOW_TEXT
+        );
+
+        var node;
+
+        while ((node = walker.nextNode())) {
+          var updated = node.nodeValue.replace(
+            /\b(?:ANOX\s+)?V\s*\d+(?:\s+Time)?\b/gi,
+            function () {
+              return model;
+            }
+          );
+
+          if (updated !== node.nodeValue) {
+            node.nodeValue = updated;
+          }
+        }
+      });
+    }
+
+    window.anoxShippingModelUpdate = updateAnoxShipping;
+    updateAnoxShipping();
+
+    if (!window.anoxShippingModelEventsInstalled) {
+      window.anoxShippingModelEventsInstalled = true;
+
+      var refresh = function () {
+        window.anoxShippingModelUpdate();
+      };
+
+      document.addEventListener(
+        'shopify:section:load',
+        refresh
+      );
+
+      if (document.readyState === 'loading') {
+        document.addEventListener(
+          'DOMContentLoaded',
+          refresh,
+          { once: true }
+        );
+      }
+    }
+  })();
+  </script>
+{% endif %}
+{% if request.page_type == 'product' and product != blank %}
+
+<anox-ready-stock-v3
+  data-product-id="{{ product.id }}"
+  data-section-id="{{ section.id | escape }}"
+  hidden
+>
+  {%- comment -%}
+    מלאי בארץ לפי וריאנט: נלקח מהמטאפילד custom.israel_stock
+    (JSON בפורמט {"<variant id>": כמות זמינה בלוקיישן "מלאי זמין בארץ"}).
+    הסימון מוצג לווריאנט זמין עם לפחות יחידה אחת במלאי בארץ.
+  {%- endcomment -%}
+  {%- assign anox_israel_stock = product.metafields.custom.israel_stock.value -%}
+  <script type="application/json" data-ready-map>
+    {
+      {%- for ready_variant in product.variants -%}
+        {%- assign anox_key = ready_variant.id | append: '' -%}
+        {%- assign anox_qty = 0 -%}
+        {%- if anox_israel_stock != blank and anox_israel_stock[anox_key] != blank -%}
+          {%- assign anox_qty = anox_israel_stock[anox_key] | plus: 0 -%}
+        {%- endif -%}
+        "{{ ready_variant.id }}": {% if ready_variant.available and anox_qty >= 1 %}true{% else %}false{% endif %}{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    }
+  </script>
+  {%- comment -%}
+    רצועות נוספות: מפת מוכנות למשלוח לכל וריאנט של מוצר הרצועות המתאים לדגם.
+    רצועה נחשבת מוכנה למשלוח עם לפחות יחידה אחת במלאי בארץ.
+  {%- endcomment -%}
+  {%- assign anox_title = product.title | upcase -%}
+  {%- if anox_title contains 'V2' -%}
+    {%- assign anox_strap_handle = 'רצועות-לכף-היד-והזרוע' -%}
+  {%- elsif anox_title contains 'V5' -%}
+    {%- assign anox_strap_handle = 'רצועה-אחת-נוספת' -%}
+  {%- else -%}
+    {%- assign anox_strap_handle = 'רצועה-אחד-נוספת' -%}
+  {%- endif -%}
+  {%- assign anox_strap = all_products[anox_strap_handle] -%}
+  <script type="application/json" data-strap-map>
+    [
+      {%- if anox_strap != blank and anox_strap.id != product.id -%}
+        {%- assign anox_strap_stock = anox_strap.metafields.custom.israel_stock.value -%}
+        {%- for sv in anox_strap.variants -%}
+          {%- assign sv_key = sv.id | append: '' -%}
+          {%- assign sv_qty = 0 -%}
+          {%- if anox_strap_stock != blank and anox_strap_stock[sv_key] != blank -%}
+            {%- assign sv_qty = anox_strap_stock[sv_key] | plus: 0 -%}
+          {%- endif -%}
+          {"id":"{{ sv.id }}","options":{{ sv.options | json }},"ready":{% if sv.available and sv_qty >= 1 %}true{% else %}false{% endif %}}{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      {%- endif -%}
+    ]
+  </script>
+</anox-ready-stock-v3>
+
+<style>
+/* מסתיר את הסימון של הקוד הישן אם נשאר בתבנית */
+.anox-ready-shipping,
+.anox-ready-ship2 {
+  display: none !important;
+}
+
+anox-ready-stock-v3 {
+  display: none !important;
+}
+
+.anox-ready-ship3 {
+  display: flex !important;
+  flex-direction: row !important;
+  direction: ltr !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 0;
+  text-align: center;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #182238;
+}
+
+.anox-ready-ship3__text {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+.anox-ready-ship3[hidden] {
+  display: none !important;
+}
+
+.anox-ready-ship3__dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #20bf75;
+  box-shadow:
+    0 0 0 3px rgba(32, 191, 117, .12),
+    0 0 7px rgba(32, 191, 117, .35);
+}
+
+@media (max-width: 359px) {
+  .anox-ready-ship3 {
+    font-size: 11px;
+    gap: 6px;
+  }
+}
+</style>
+
+<script>
+if (!customElements.get('anox-ready-stock-v3')) {
+  customElements.define(
+    'anox-ready-stock-v3',
+    class extends HTMLElement {
+      connectedCallback() {
+        this.frame = requestAnimationFrame(() => this.start());
+      }
+
+      disconnectedCallback() {
+        this.running = false;
+
+        cancelAnimationFrame(this.frame);
+        clearTimeout(this.retry);
+        clearInterval(this.selectionTimer);
+        clearInterval(this.stockTimer);
+
+        this.controller?.abort();
+
+        document.removeEventListener('change', this.onSelection, true);
+        document.removeEventListener('input', this.onSelection, true);
+        document.removeEventListener('visibilitychange', this.onRefresh);
+        document.removeEventListener('cart:updated', this.onRefresh);
+        window.removeEventListener('focus', this.onRefresh);
+
+        this.badges?.forEach(badge => badge.remove());
+        this.badges?.clear();
+      }
+
+      readMap(element) {
+        const data = JSON.parse(
+          element.querySelector('[data-ready-map]').textContent
+        );
+
+        if (!data || Array.isArray(data) || typeof data !== 'object') {
+          throw new Error();
+        }
+
+        const valid = Object.entries(data).every(
+          ([id, ready]) => /^\d+$/.test(id) && typeof ready === 'boolean'
+        );
+
+        if (!valid) throw new Error();
+
+        return data;
+      }
+
+      readStraps(element) {
+        const node = element.querySelector('[data-strap-map]');
+        if (!node) return [];
+        try {
+          const data = JSON.parse(node.textContent);
+          return Array.isArray(data) ? data : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      normalize(text) {
+        return String(text || '').replace(/\s+/g, ' ').trim();
+      }
+
+      typeKey(text) {
+        const t = this.normalize(text);
+        if (/ספורטיבי/.test(t)) return 'ספורטיבי';
+        if (/קלאסי/.test(t)) return 'קלאסי';
+        if (/זרוע/.test(t)) return 'לזרוע';
+        if (/מפרק|כף היד/.test(t)) return 'למפרק';
+        return '';
+      }
+
+      /* בודק את הרצועות הנוספות שהלקוח סימן. מחזיר false אם אחת מהן לא מוכנה למשלוח מהארץ */
+      strapsReady() {
+        if (!this.straps || !this.straps.length) return true;
+
+        const colors = Array.from(new Set(
+          this.straps.flatMap(v => v.options || []).filter(o => !this.typeKey(o))
+        )).sort((a, b) => b.length - a.length);
+
+        const marks = Array.from(
+          document.querySelectorAll('button, a, span, div, label')
+        ).filter(el =>
+          el.children.length === 0 &&
+          /נבחרה/.test(el.textContent || '') &&
+          el.offsetParent !== null
+        );
+
+        if (!marks.length) return true;
+
+        const headings = Array.from(
+          document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, div, span, strong, b, label')
+        ).filter(el => {
+          const t = this.normalize(el.textContent);
+          return t.length > 0 && t.length <= 25 && this.typeKey(t) && el.offsetParent !== null;
+        });
+
+        for (const mark of marks) {
+          let card = mark.parentElement;
+          let color = '';
+
+          for (let i = 0; card && i < 6; i++, card = card.parentElement) {
+            const text = this.normalize(card.textContent);
+            color = colors.find(c => text.includes(c)) || '';
+            if (color) break;
+          }
+
+          if (!card || !color) return false;
+
+          const before = headings.filter(h =>
+            !card.contains(h) &&
+            (h.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING)
+          );
+
+          const type = before.length
+            ? this.typeKey(before[before.length - 1].textContent)
+            : '';
+
+          const match = this.straps.find(v => {
+            const opts = (v.options || []).map(o => this.normalize(o));
+            return opts.includes(color) && (!type || opts.includes(type));
+          });
+
+          if (!match || match.ready !== true) return false;
+        }
+
+        return true;
+      }
+
+      start() {
+        if (!this.isConnected || this.running) return;
+
+        const owner = Array.from(
+          document.querySelectorAll('anox-ready-stock-v3')
+        ).find(element =>
+          element !== this &&
+          element.running &&
+          element.dataset.productId === this.dataset.productId
+        );
+
+        if (owner) {
+          this.retry = setTimeout(() => this.start(), 1000);
+          return;
+        }
+
+        try {
+          this.stock = this.readMap(this);
+          this.straps = this.readStraps(this);
+        } catch (error) {
+          return;
+        }
+
+        this.running = true;
+        this.fresh = true;
+        this.badges = new Map();
+
+        this.onSelection = () => {
+          cancelAnimationFrame(this.frame);
+          this.frame = requestAnimationFrame(() => this.sync());
+        };
+
+        this.onRefresh = () => {
+          if (!document.hidden) {
+            this.sync();
+            this.refresh();
+          }
+        };
+
+        document.addEventListener('change', this.onSelection, true);
+        document.addEventListener('input', this.onSelection, true);
+        document.addEventListener('visibilitychange', this.onRefresh);
+        document.addEventListener('cart:updated', this.onRefresh);
+        window.addEventListener('focus', this.onRefresh);
+
+        this.selectionTimer = setInterval(() => {
+          if (!document.hidden) this.sync();
+        }, 500);
+
+        this.stockTimer = setInterval(() => {
+          this.refresh();
+        }, 60000);
+
+        this.sync();
+      }
+
+      selectedId(form) {
+        const controls = Array.from(form.elements).filter(
+          element => element.name === 'id' && element.matches('input, select')
+        );
+
+        const radios = controls.filter(element => element.type === 'radio');
+
+        if (radios.length) {
+          return radios.find(element => element.checked)?.value || '';
+        }
+
+        return (
+          controls.find(element => element.tagName === 'SELECT')?.value ||
+          controls.find(element => element.type === 'hidden')?.value ||
+          controls[0]?.value ||
+          ''
+        );
+      }
+
+      sync() {
+        if (!this.running || !this.isConnected) return;
+
+        this.badges.forEach((badge, form) => {
+          if (!form.isConnected) {
+            badge.remove();
+            this.badges.delete(form);
+          }
+        });
+
+        const strapsOk = this.strapsReady();
+
+        document.querySelectorAll('form[action*="/cart/add"]').forEach(form => {
+          const id = this.selectedId(form);
+
+          const belongs = Object.prototype.hasOwnProperty.call(this.stock, id);
+
+          let badge = this.badges.get(form);
+
+          if (!belongs) {
+            if (badge) badge.hidden = true;
+            return;
+          }
+
+          const button =
+            form.querySelector('[data-submit]') ||
+            form.querySelector(
+              'button[name="add"], button[type="submit"], input[type="submit"]'
+            );
+
+          if (!button) {
+            if (badge) badge.hidden = true;
+            return;
+          }
+
+          if (!badge) {
+            badge =
+              form.querySelector('.anox-ready-ship3') ||
+              document.createElement('p');
+
+            badge.className = 'anox-ready-ship3';
+            badge.hidden = true;
+            badge.setAttribute('role', 'status');
+
+            badge.innerHTML =
+              '<span class="anox-ready-ship3__text" dir="rtl">מוכן למשלוח | יגיע אליך תוך <bdi dir="ltr">(1-3)</bdi> ימי עסקים</span>' +
+              '<span class="anox-ready-ship3__dot" aria-hidden="true"></span>';
+
+            this.badges.set(form, badge);
+          }
+
+          if (button.nextElementSibling !== badge) {
+            button.after(badge);
+          }
+
+          badge.hidden = !(
+            this.fresh &&
+            this.stock[id] === true &&
+            strapsOk
+          );
+        });
+      }
+
+      async refresh() {
+        if (
+          !this.running ||
+          document.hidden ||
+          this.pending ||
+          !this.dataset.sectionId
+        ) {
+          return;
+        }
+
+        if (this.lastRequest && Date.now() - this.lastRequest < 5000) {
+          return;
+        }
+
+        this.lastRequest = Date.now();
+        this.pending = true;
+
+        const controller = new AbortController();
+        this.controller = controller;
+
+        const timeout = setTimeout(() => {
+          controller.abort();
+        }, 15000);
+
+        try {
+          const url = new URL(window.location.href);
+
+          url.searchParams.delete('sections');
+          url.searchParams.set('section_id', this.dataset.sectionId);
+          url.searchParams.set('_anox_stock', String(Date.now()));
+
+          const response = await fetch(url.toString(), {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            signal: controller.signal
+          });
+
+          if (!response.ok) throw new Error();
+
+          const html = await response.text();
+
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+
+          const source = Array.from(
+            doc.querySelectorAll('anox-ready-stock-v3')
+          ).find(element =>
+            element.dataset.productId === this.dataset.productId &&
+            element.dataset.sectionId === this.dataset.sectionId
+          );
+
+          if (!source) throw new Error();
+
+          this.stock = this.readMap(source);
+          this.straps = this.readStraps(source);
+          this.fresh = true;
+        } catch (error) {
+          this.fresh = false;
+        } finally {
+          clearTimeout(timeout);
+          this.pending = false;
+          this.controller = null;
+          this.sync();
+        }
+      }
+    }
+  );
+}
+</script>
+
+{% endif %}
