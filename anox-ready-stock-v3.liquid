@@ -509,10 +509,16 @@ if (!customElements.get('anox-ready-stock-v3')) {
             button.after(badge);
           }
 
+          /* צמידים נוספים שנבחרו ב-dropdown: כל אחד חייב להיות במלאי בארץ */
+          const extraOk = Array.from(
+            form.querySelectorAll('select[data-extra-variant]')
+          ).every(select => this.stock[select.value] === true);
+
           badge.hidden = !(
             this.fresh &&
             this.stock[id] === true &&
-            strapsOk
+            strapsOk &&
+            extraOk
           );
         });
       }

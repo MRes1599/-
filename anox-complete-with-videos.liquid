@@ -291,6 +291,7 @@
             </p>
           {% endif %}
 
+          <div class="axp-more" data-more hidden><h3>בחרו דגם וצבע לצמידים הנוספים</h3></div>
           <p class="axp-total-note" data-total-note role="status" hidden></p>
 
           <div class="axp-error" data-error role="alert" hidden>
@@ -606,6 +607,14 @@
 .axp-choice>input:checked + .axp-strap-body .axp-selected-text{display:inline}
 .axp-choice>input:disabled + .axp-strap-body{opacity:.5;cursor:not-allowed}
 .axp-buy-row{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:16px 0 0}
+.axp-buy-row>.axp-qty{order:1}
+.axp-buy-row>.anox-ready-ship3{order:2}
+.axp-more{margin:0 0 14px;padding:12px;border:1px solid #dce4f0;border-radius:13px;background:#f8fbff}
+.axp-more>h3{font-size:14px!important;margin:0 0 10px!important}
+.axp-more-row{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:13px;font-weight:600}
+.axp-more-row:last-child{margin:0}
+.axp-more-row>span{flex:0 0 auto;min-width:52px}
+.axp .axp-more-row>select{flex:1;min-width:0;min-height:42px;margin:0;padding:8px 10px;border:1px solid #d6dde8;border-radius:10px;background:#fff;color:#182238;font:inherit;font-weight:400}
 .axp-qty{display:flex;align-items:center;flex:0 0 auto;min-height:49px;border:1.5px solid #d6dde8;border-radius:999px;background:#fff;overflow:hidden;direction:ltr}
 .axp .axp-qty>button{display:flex;align-items:center;justify-content:center;width:40px;height:100%;min-height:46px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#182238;font-family:Arial,sans-serif;font-size:20px;line-height:1;box-shadow:none;cursor:pointer}
 .axp-qty>button::before,.axp-qty>button::after{display:none}
@@ -846,14 +855,61 @@ this.querySelector('[data-product-link]').href = d.url;
 this.showPhoto(d);
 this.totals();
 }
+variantData(id) {
+return this.querySelector('[data-variant][value="' + id + '"]')?.dataset;
+}
+braceletIds() {
+return [
+this.selected.value,
+...[...this.querySelectorAll('[data-extra-variant]')].map(s => s.value)
+];
+}
+lines() {
+const map = new Map();
+this.braceletIds().forEach(id => map.set(id, (map.get(id) || 0) + 1));
+return [...map].map(([id, quantity]) => ({ id: Number(id), quantity }));
+}
+renderMore() {
+const box = this.querySelector('[data-more]');
+if (!box || !this.selected) return;
+const need = this.qty() - 1;
+const rows = [...box.querySelectorAll('.axp-more-row')];
+const variants = [...this.querySelectorAll('[data-variant]')];
+for (let i = rows.length; i < need; i++) {
+const row = document.createElement('label');
+row.className = 'axp-more-row';
+row.innerHTML = '<span>צמיד ' + (i + 2) + '</span>';
+const select = document.createElement('select');
+select.setAttribute('data-extra-variant', '');
+select.setAttribute('aria-label', 'דגם וצבע לצמיד ' + (i + 2));
+variants.forEach(v => {
+const ok = v.dataset.available === 'true';
+const option = new Option(v.dataset.title + (ok ? '' : ' – אזל מהמלאי'), v.value);
+option.disabled = !ok;
+select.add(option);
+});
+select.value = this.selected.value;
+select.addEventListener('change', () => this.totals());
+row.append(select);
+box.append(row);
+}
+rows.slice(need).forEach(row => row.remove());
+box.hidden = need < 1;
+}
 totals() {
 if (!this.selected) return;
 const d = this.selected.dataset;
 const extras = this.straps();
 const quantity = this.qty();
-const unit = Number(d.price);
-let price = unit * quantity;
-let old = Math.max(Number(d.old), unit) * quantity;
+let price = 0;
+let old = 0;
+this.renderMore();
+this.braceletIds().forEach(id => {
+const v = this.variantData(id) || d;
+const unit = Number(v.price);
+price += unit;
+old += Math.max(Number(v.old), unit);
+});
 extras.forEach(input => {
 const amount = Number(input.dataset.price);
 price += amount;
@@ -904,7 +960,7 @@ this.busy ||
 this.selected.dataset.available !== 'true'
 ) return;
 const items = [
-{ id: Number(this.selected.value), quantity: this.qty() },
+...this.lines(),
 ...this.straps().map(input => ({
 id: Number(input.value),
 quantity: 1
@@ -915,7 +971,7 @@ errorBox.hidden = true;
 this.busy = true;
 this.form.setAttribute('aria-busy', 'true');
 this.totals();
-const controls = [...this.form.querySelectorAll('input')]
+const controls = [...this.form.querySelectorAll('input, select')]
 .map(input => [input, input.disabled]);
 controls.forEach(([input]) => {
 input.disabled = true;
@@ -1062,10 +1118,7 @@ if (
 (!this.selected || this.selected.dataset.available !== 'true')
 ) return;
 const items = this.anoxCartNeedsOpening ? null : [
-{
-id: Number(this.selected.value),
-quantity: typeof this.qty === 'function' ? this.qty() : 1
-},
+...this.lines(),
 ...this.straps().map(input => ({
 id: Number(input.value),
 quantity: 1
@@ -1096,7 +1149,7 @@ retry.hidden = true;
 this.busy = true;
 this.form.setAttribute('aria-busy', 'true');
 this.totals();
-const controls = [...this.form.querySelectorAll('input')]
+const controls = [...this.form.querySelectorAll('input, select')]
 .map(input => [input, input.disabled]);
 controls.forEach(([input]) => {
 input.disabled = true;
