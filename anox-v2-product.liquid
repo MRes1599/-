@@ -1,0 +1,1205 @@
+{% liquid
+assign p = product
+assign anox_supported = false
+if request.page_type == 'product' and product.handle == 'anox-v2'
+assign anox_supported = true
+endif
+assign anox_model = 'ANOX V2'
+assign straps = all_products['רצועות-לכף-היד-והזרוע']
+assign available_straps = straps.variants | where: 'available', true
+assign strap_type_key = 'option1'
+assign strap_color_key = 'option2'
+assign uid = 'anox-v2-' | append: section.id | append: block.id
+%}
+
+{% if anox_supported and p != blank %}
+{% liquid
+assign available_variants = p.variants | where: 'available', true
+assign chosen = p.selected_or_first_available_variant
+unless chosen.available
+assign chosen = available_variants | first
+endunless
+if chosen == blank
+assign chosen = p.variants | first
+endif
+assign main_image = chosen.featured_image | default: p.featured_image
+assign half_price = chosen.price | divided_by: 2.0 | round
+assign rating = p.metafields.reviews.rating.value
+assign reviews = p.metafields.reviews.rating_count.value
+%}
+
+<anox-v2-product-v3
+  class="av2 av2-v2"
+  dir="rtl"
+  data-currency="{{ cart.currency.iso_code | default: shop.currency }}"
+  data-add-url="{{ routes.cart_add_url }}.js"
+  data-cart-url="{{ routes.cart_url }}"
+  aria-labelledby="{{ uid }}-title"
+>
+<div class="av2-layout">
+<div class="av2-info">
+
+{% if rating != blank and reviews > 0 %}
+<p class="av2-rating" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;direction:ltr;font-size:12px;" aria-label="{{ rating.rating }} מתוך {{ rating.scale_max }}, {{ reviews }} חוות דעת">
+<span aria-hidden="true" style="color:#f4a62a;font-size:17px;letter-spacing:1px;">★★★★★</span>
+<span style="color:#64748b;direction:rtl;">3,671+ חוות דעת</span>
+</p>
+{% endif %}
+
+<h2 id="{{ uid }}-title">
+ANOX V2<br>
+על היד ביום־יום.<br>
+על הזרוע באימון.
+</h2>
+
+<div class="av2-prices" aria-live="polite" aria-atomic="true">
+<s data-base-old
+{% unless chosen.compare_at_price > chosen.price %}hidden{% endunless %}
+aria-label="מחיר קודם">{{ chosen.compare_at_price | money }}</s>
+<span data-base-price aria-label="מחיר נוכחי">{{ chosen.price | money }}</span>
+</div>
+
+<p class="av2-installments">
+או <strong data-half>{{ half_price | money }}</strong>
+ב־2 תשלומים ללא ריבית
+</p>
+</div>
+
+<div class="av2-gallery">
+{% if main_image != blank %}
+<img
+class="av2-main"
+data-main
+src="{{ main_image | image_url: width: 1200 }}"
+alt="{{ main_image.alt | default: p.title | escape }}"
+width="{{ main_image.width }}"
+height="{{ main_image.height }}"
+loading="lazy"
+>
+{% endif %}
+
+{% if p.images.size > 1 %}
+<div class="av2-thumbs" aria-label="תמונות המוצר">
+{% for photo in p.images %}
+<button
+type="button"
+data-photo
+data-src="{{ photo | image_url: width: 1200 }}"
+data-alt="{{ photo.alt | default: p.title | escape }}"
+data-width="{{ photo.width }}"
+data-height="{{ photo.height }}"
+aria-label="הצגת תמונה {{ forloop.index }}"
+aria-pressed="{% if photo.id == main_image.id %}true{% else %}false{% endif %}"
+>
+<img
+src="{{ photo | image_url: width: 180 }}"
+alt=""
+width="{{ photo.width }}"
+height="{{ photo.height }}"
+loading="lazy"
+>
+</button>
+{% endfor %}
+</div>
+{% endif %}
+</div>
+
+<div class="av2-purchase">
+<form method="post" action="{{ routes.cart_add_url }}" accept-charset="UTF-8">
+<input type="hidden" name="form_type" value="product">
+<input type="hidden" name="utf8" value="✓">
+
+<div class="v2-step">
+<span class="v2-step-number">1</span>
+<h3>איזו רצועה תגיע עם הצמיד?</h3>
+</div>
+<p class="v2-included-note">
+כלול במחיר: צמיד V2 + רצועה אחת לבחירתכם.
+</p>
+
+{% if available_variants.size == 0 %}
+<p class="av2-note">המוצר אזל מהמלאי כרגע.</p>
+{% endif %}
+
+<div class="v2-wear" role="group" aria-label="בחירת הרצועה הכלולה במחיר">
+{% assign wear_types = available_variants | map: 'option1' | uniq %}
+{% for wear in wear_types %}
+<button
+type="button"
+data-v2-wear="{{ wear | escape }}"
+aria-pressed="{% if chosen.option1 == wear %}true{% else %}false{% endif %}"
+>
+<strong>
+{% if wear == 'למפרק' %}
+לשורש כף היד
+{% else %}
+{{ wear | escape }}
+{% endif %}
+</strong>
+<span>
+{% if wear == 'למפרק' %}
+לענידה על היד
+{% else %}
+לענידה על הזרוע
+{% endif %}
+</span>
+<small>הרצועה שכלולה במחיר</small>
+</button>
+{% endfor %}
+</div>
+
+<fieldset class="v2-colors">
+<legend>בחרו צבע לצמיד </legend>
+<div class="av2-variants">
+{% for v in available_variants %}
+{% assign vi = v.featured_image | default: p.featured_image %}
+<label
+class="av2-choice"
+data-v2-color-type="{{ v.option1 | escape }}"
+{% if v.option1 != chosen.option1 %}hidden{% endif %}
+>
+<input
+type="radio"
+name="id"
+value="{{ v.id }}"
+data-variant
+data-price="{{ v.price }}"
+data-old="{{ v.compare_at_price | default: v.price }}"
+data-available="{{ v.available }}"
+data-title="{{ v.title | escape }}"
+data-wear="{{ v.option1 | escape }}"
+data-color="{{ v.option2 | escape }}"
+data-url="{{ v.url }}"
+data-alt="{{ vi.alt | default: p.title | escape }}"
+{% if vi != blank %}
+data-src="{{ vi | image_url: width: 1200 }}"
+data-width="{{ vi.width }}"
+data-height="{{ vi.height }}"
+{% endif %}
+{% if v.id == chosen.id %}checked{% endif %}
+>
+<span class="av2-choice-body">
+{% if vi != blank %}
+<img
+src="{{ vi | image_url: width: 180 }}"
+alt=""
+width="52"
+height="52"
+loading="lazy"
+>
+{% endif %}
+<span>
+{{ v.option2 | escape }}
+{% unless v.available %}
+<small>אזל מהמלאי</small>
+{% endunless %}
+</span>
+</span>
+</label>
+{% endfor %}
+</div>
+</fieldset>
+
+<div class="av2-included">
+{% if main_image != blank %}
+<img
+data-included-image
+src="{{ main_image | image_url: width: 180 }}"
+alt=""
+width="68"
+height="68"
+>
+{% endif %}
+<div>
+<strong>הצמיד והרצועה שבחרתם</strong>
+<span data-included-title>{{ chosen.title | escape }}</span>
+<span data-base-price>{{ chosen.price | money }}</span>
+</div>
+<small>כלול במחיר</small>
+</div>
+
+{% if available_straps.size > 0 %}
+<div class="av2-extras" data-extras hidden>
+<div class="v2-step v2-extras-heading">
+<span class="v2-step-number">2</span>
+<h3>רוצים גם רצועה נוספת?</h3>
+<button
+type="button"
+class="v2-help"
+data-help-toggle
+aria-label="מידע על הרצועות הנוספות"
+aria-expanded="false"
+aria-controls="{{ uid }}-strap-help"
+>?</button>
+
+<div
+class="v2-help-bubble"
+id="{{ uid }}-strap-help"
+data-help-bubble
+hidden
+>
+<p>
+אפשר להישאר עם הרצועה הכלולה בלבד.
+כל רצועה נוספת נרכשת בנפרד, במחיר שמופיע לידה.
+</p>
+<p data-v2-suggestion></p>
+</div>
+</div>
+
+{% assign types = available_straps | map: strap_type_key | uniq %}
+{% for type in types %}
+<fieldset>
+<legend>
+{% case type %}
+{% when 'לזרוע' %}
+רצועה נוספת לזרוע
+{% when 'למפרק' %}
+רצועה נוספת לשורש כף היד
+{% else %}
+{{ type | escape }}
+{% endcase %}
+</legend>
+
+<div class="av2-straps">
+{% for strap in available_straps %}
+{% if strap[strap_type_key] == type %}
+{% assign si = strap.featured_image | default: straps.featured_image %}
+{% assign strap_src = si | image_url: width: 480 %}
+<label class="av2-choice">
+<input
+type="checkbox"
+data-strap
+value="{{ strap.id }}"
+data-title="{{ strap.title | escape }}"
+data-wear="{{ strap.option1 | escape }}"
+data-color="{{ strap.option2 | escape }}"
+data-available="{{ strap.available }}"
+data-price="{{ strap.price }}"
+data-old="{{ strap.compare_at_price | default: strap.price }}"
+{% unless strap.available %}disabled{% endunless %}
+>
+<span class="av2-strap-body">
+{% if strap_src != blank %}
+<img
+src="{{ strap_src | escape }}"
+alt=""
+width="100"
+height="100"
+loading="lazy"
+>
+{% endif %}
+
+<span class="av2-color">{{ strap[strap_color_key] | escape }}</span>
+
+<span class="av2-strap-price">
+<span class="v2-extra-cost">תוספת</span>
+{% if strap.compare_at_price > strap.price %}
+<s aria-label="מחיר מקורי">{{ strap.compare_at_price | money }}</s>
+<strong aria-label="מחיר מבצע">{{ strap.price | money }}</strong>
+{% else %}
+<span>{{ strap.price | money }}</span>
+{% endif %}
+</span>
+
+<span class="av2-strap-action">
+{% if strap.available %}
+<span class="av2-add-text">הוספת רצועה</span>
+<span class="av2-selected-text">✓ נבחרה</span>
+{% else %}
+אזל מהמלאי
+{% endif %}
+</span>
+</span>
+</label>
+{% endif %}
+{% endfor %}
+</div>
+</fieldset>
+{% endfor %}
+
+
+{% elsif request.design_mode %}
+<p class="av2-note">מוצר הרצועות אינו זמין בחנות האונליין.</p>
+{% endif %}
+
+<div class="av2-more" data-more hidden><h3>בחרו רצועה וצבע לצמידים הנוספים</h3></div>
+
+<p
+class="av2-total-note"
+data-total-note
+role="status"
+aria-live="polite"
+>המחיר כולל צמיד V2 ורצועה אחת לבחירתכם.</p>
+
+<div class="av2-error" data-error role="alert" hidden>
+<p data-error-text></p>
+<a href="{{ routes.cart_url }}">לבדיקת סל הקניות</a>
+</div>
+
+<div class="av2-buy-row">
+<div class="av2-qty" role="group" aria-label="כמות צמידים">
+<button type="button" data-qty-plus aria-label="הוספת צמיד">+</button>
+<input type="number" name="quantity" value="1" min="1" max="10" step="1" inputmode="numeric" data-qty aria-label="כמות">
+<button type="button" data-qty-minus aria-label="הפחתת צמיד" disabled>−</button>
+</div>
+
+<button
+type="submit"
+class="av2-cta"
+data-submit
+{% unless chosen.available %}disabled{% endunless %}
+>
+<span data-submit-text>
+{% if chosen.available %}
+הוספה לסל
+{% else %}
+אזל מהמלאי
+{% endif %}
+</span>
+
+<span
+class="av2-cta-prices"
+data-cta-prices
+{% unless chosen.available %}hidden{% endunless %}
+>
+<s
+data-total-old
+{% unless chosen.compare_at_price > chosen.price %}hidden{% endunless %}
+aria-label="מחיר קודם"
+>{{ chosen.compare_at_price | money }}</s>
+<span data-total-price>{{ chosen.price | money }}</span>
+</span>
+</button>
+</div>
+</form>
+
+<div class="av2-faq">
+<details name="{{ uid }}-faq">
+<summary>פרטים <span aria-hidden="true">+</span></summary>
+<div class="av2-answer">
+<div class="anox-v2-product-details">
+  <p>
+    <strong>ANOX V2 — צמיד חכם למעקב אחר הבריאות, השינה והפעילות.</strong>
+    צמיד ללא מסך, עם צפייה בנתונים דרך האפליקציה בטלפון.
+  </p>
+
+  <h4>מעקב אחר השגרה שלכם</h4>
+  <ul>
+    <li>מעקב אחר השינה.</li>
+    <li>מעקב אחר הפעילות לאורך היום.</li>
+    <li>צפייה בנתונים באפליקציה בטלפון.</li>
+  </ul>
+
+  <h4>על היד או על הזרוע — לבחירתכם</h4>
+  <p>
+    בעת ההזמנה בוחרים את סוג הרצועה שתגיע עם הצמיד:
+    <strong>רצועה לשורש כף היד או רצועה לזרוע.</strong>
+    לאחר מכן בוחרים את הצבע מתוך האפשרויות הזמינות במלאי.
+  </p>
+
+  <h4>מה כלול בהזמנה?</h4>
+  <ul>
+    <li>צמיד ANOX V2.</li>
+    <li>רצועה אחת, בסוג ובצבע שבחרתם.</li>
+  </ul>
+
+  <h4>רוצים להשתמש בשני סוגי הרצועות?</h4>
+  <p>
+    אפשר להוסיף להזמנה רצועה נוספת לשורש כף היד או לזרוע,
+    ולהחליף ביניהן בהתאם לשימוש.
+    <strong>הרצועה הראשונה כלולה במחיר הצמיד; כל רצועה נוספת בתשלום.</strong>
+  </p>
+</div>
+
+<style>
+.av2 .anox-v2-product-details{text-align:right;line-height:1.85}
+.av2 .anox-v2-product-details h4{margin:20px 0 7px;color:#171717;font-size:14px;font-weight:700}
+.av2 .anox-v2-product-details p{margin:0 0 12px}
+.av2 .anox-v2-product-details ul{margin:0 0 14px;padding-inline-start:20px;list-style:disc}
+.av2 .anox-v2-product-details li{margin-bottom:5px}
+</style><p>
+<a data-product-link href="{{ chosen.url }}">לעמוד המוצר המלא</a>
+</p>
+</div>
+</details>
+
+<details name="{{ uid }}-faq">
+<summary>משלוח, החזרות ואחריות <span aria-hidden="true">+</span></summary>
+<div class="av2-answer">
+{% if shop.shipping_policy.body != blank %}
+<h4>משלוחים</h4>
+{{ shop.shipping_policy.body }}
+{% endif %}
+
+{% if shop.refund_policy.body != blank %}
+<h4>החזרות והחזרים</h4>
+{{ shop.refund_policy.body }}
+{% endif %}
+
+{% if shop.shipping_policy.body == blank and shop.refund_policy.body == blank %}
+<p>
+אפשרויות המשלוח והעלות מוצגות במהלך התשלום.
+למידע על זמני אספקה והחזרות, ניתן לפנות לשירות הלקוחות.
+</p>
+{% endif %}
+
+<h4>אחריות ושירות</h4>
+<p>
+לבירור תנאי האחריות לדגם {{ anox_model | escape }} ולקבלת שירות,
+ניתן לפנות אלינו בטלפון
+<a href="tel:+972515508143"><bdi>0515508143</bdi></a>.
+</p>
+
+{% if shop.terms_of_service != blank %}
+<a href="{{ shop.terms_of_service.url }}">לתנאי החנות המלאים</a>
+{% endif %}
+</div>
+</details>
+
+<details name="{{ uid }}-faq">
+<summary>מה ההבדל משעונים חכמים אחרים? <span aria-hidden="true">+</span></summary>
+<div class="av2-answer">
+<p>
+<strong>
+{{ anox_model | escape }} מתמקד במעקב אחר השגרה שלך,
+עם הצגת הנתונים באפליקציה בטלפון.
+</strong>
+</p>
+<p>
+{% if anox_model == 'ANOX V7 Time' %}
+<strong>תצוגת שעה על הצמיד:</strong>
+הצמיד מציג את השעה, והנתונים המפורטים זמינים באפליקציה.
+{% else %}
+<strong>ללא מסך על הצמיד:</strong>
+צפייה בנתונים נעשית דרך האפליקציה.
+{% endif %}
+</p>
+<p>
+<strong>מעקב לאורך היום:</strong>
+נתוני השינה, הפעילות וההתאוששות עוזרים להכיר את ההרגלים שלך.
+</p>
+<p>
+<strong>מיקוד בשגרה שלך:</strong>
+מתאים למי שמחפש צמיד למעקב,
+כשהטלפון משמש לצפייה במידע.
+</p>
+<p>
+להשוואת תכונות מסוימות, אפשר לעיין במפרט המלא
+של הדגם בסעיף ״פרטים״.
+</p>
+</div>
+</details>
+</div>
+
+{% assign anox_v2_videos = 'https://cdn.shopify.com/videos/c/o/v/d330dddae5ef4a63a00843546b3004a3.mp4|https://cdn.shopify.com/videos/c/o/v/55f03ccb0c1940229a8c8a390346b190.mp4|https://cdn.shopify.com/videos/c/o/v/8df6f931d8dd4fd7bab43ec396e92a10.mp4|https://cdn.shopify.com/videos/c/o/v/a2428ed2b0c2448585d2f6883854896a.mp4' | split: '|' %}
+
+<div class="av2-videos" aria-label="אנשים אמיתיים אומרים">
+<h2>אנשים אמיתיים אומרים.</h2>
+
+<div class="av2-video-track">
+{% for video_url in anox_v2_videos %}
+<button
+type="button"
+class="av2-video-card"
+data-video-src="{{ video_url | escape }}"
+aria-label="הפעלת סרטון {{ forloop.index }}"
+aria-haspopup="dialog"
+>
+<video
+src="{{ video_url | escape }}#t=0.1"
+muted
+playsinline
+preload="metadata"
+aria-hidden="true"
+tabindex="-1"
+></video>
+<span class="av2-video-play" aria-hidden="true">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+<path d="M8 4v16l13-8z" />
+</svg>
+</span>
+</button>
+{% endfor %}
+</div>
+
+<dialog class="av2-video-dialog" aria-label="צפייה בסרטון ANOX">
+<div class="av2-video-bar">
+<button type="button" data-video-close aria-label="סגירת הסרטון">×</button>
+</div>
+<video
+data-video-player
+controls
+playsinline
+preload="none"
+aria-label="סרטון ANOX"
+></video>
+</dialog>
+</div>
+
+<style>
+.av2.av2-v2 .av2-videos{margin-top:28px}
+.av2.av2-v2 .av2-videos>h2{margin:0 0 22px;font-family:inherit;font-size:28px!important;font-weight:800;line-height:1.25;text-align:center;color:#222}
+.av2.av2-v2 .av2-video-track{direction:ltr;gap:12px}
+.av2.av2-v2 .av2-video-card{flex:0 0 calc((100% - 36px)/4);aspect-ratio:9/16;border-radius:14px}
+.av2.av2-v2 .av2-video-play{left:12px;bottom:12px;width:40px;height:40px;background:#1676ff;color:#fff}
+@media(max-width:749px){
+.av2.av2-v2 .av2-video-card{flex-basis:43%}
+.av2.av2-v2 .av2-video-play{left:9px;bottom:9px;width:36px;height:36px}
+}
+</style>
+
+</div>
+</div>
+</anox-v2-product-v3>
+
+{% elsif request.design_mode %}
+<p dir="rtl">הסקשיין מתאים לדף המוצר ANOX V2. בחרו את V2 בתצוגה המקדימה.</p>
+{% endif %}
+
+<style>
+.av2{display:block;padding:40px 16px;background:#fff;color:#171717;font-family:inherit;text-align:right}
+.av2,.av2 *{box-sizing:border-box}
+.av2 [hidden]{display:none!important}
+.av2-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);grid-template-areas:"gallery info" "gallery purchase";grid-template-rows:auto 1fr;gap:24px 40px;max-width:1180px;margin:auto;align-items:start}
+.av2-info{grid-area:info;min-width:0}
+.av2-gallery{grid-area:gallery;min-width:0}
+.av2-purchase{grid-area:purchase;min-width:0}
+.av2 h2{font-family:inherit;font-size:clamp(28px,3.4vw,44px);font-weight:700;line-height:1.25;color:#111;margin:0 0 18px}
+.av2 h3{font-family:inherit;font-size:16px;font-weight:700;line-height:1.5;margin:0 0 12px;color:#171717}
+.av2-rating{font-size:12px;margin:0 0 12px}
+.av2-rating>span{color:#ffad35}
+.av2-prices{display:flex;align-items:baseline;flex-wrap:wrap;gap:9px;direction:rtl}
+.av2-prices>s{color:#888;font-size:20px;font-weight:400;text-decoration-thickness:1px;white-space:nowrap;unicode-bidi:isolate}
+.av2-prices>span{color:#444;font-size:25px;font-weight:400;white-space:nowrap;unicode-bidi:isolate}
+.av2-installments{margin:4px 0 0;color:#888;font-size:14px;line-height:1.6}
+.av2-installments strong{color:#707070;font-weight:700}
+.av2-description{font-size:14px;line-height:1.8;color:#666666;margin:18px 0 0}
+.av2-main{display:block;width:100%;height:auto;aspect-ratio:auto;border-radius:15px}
+.av2-thumbs{display:flex;gap:8px;margin-top:10px;padding:3px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+.av2-thumbs::-webkit-scrollbar{display:none}
+.av2-thumbs button{display:block;flex:0 0 auto;width:auto;height:64px;margin:0;padding:0;background:transparent;border:2px solid transparent;border-radius:9px;overflow:hidden;cursor:pointer}
+.av2-thumbs button[aria-pressed="true"]{border-color:#171717}
+.av2-thumbs img{display:block;width:auto;height:100%;max-width:none;aspect-ratio:auto}
+.av2 form{margin:0}
+.av2-included{display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid #171717;border-radius:13px;background:#ffffff}
+.av2-included>img{width:68px;height:68px;object-fit:contain;border-radius:8px;background:#f1f0ee}
+.av2-included>div{display:flex;flex:1;flex-direction:column;gap:4px;font-size:12px;min-width:0}
+.av2-included strong{font-size:15px}
+.av2-included>small{font-size:11px;color:#171717;white-space:nowrap}
+.av2-change{margin:10px 0 20px}
+.av2-change>summary{padding:5px 0;font-size:12px;color:#666666;text-decoration:underline;cursor:pointer}
+.av2 fieldset{min-width:0;margin:14px 0 18px;padding:0;border:0}
+.av2 legend{margin:0 0 10px;padding:0;font-size:13px;font-weight:600}
+.av2-variants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.av2-choice{display:block;position:relative;min-width:0;margin:0;cursor:pointer}
+.av2-choice>input{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.av2-choice-body{display:flex;align-items:center;gap:9px;height:100%;padding:10px;border:1.5px solid #e2e2e2;border-radius:12px;background:#fff;font-size:12px}
+.av2-choice-body>img{width:48px;height:48px;object-fit:contain}
+.av2-choice-body small{display:block;font-size:10px;color:#888}
+.av2-choice>input:checked+.av2-choice-body{border-color:#171717;background:#f7f7f7}
+.av2-extras{margin:22px 0;padding-top:18px;border-top:1px solid #ebebeb}
+.av2-note{margin:0 0 14px;font-size:11px;line-height:1.6;color:#777777}
+.av2-straps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.av2-strap-body{display:flex;flex-direction:column;height:100%;padding:7px;border:1.5px solid #e2e2e2;border-radius:11px;background:#fff}
+.av2-strap-body>img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;object-position:center;padding:0;border-radius:7px;background:transparent;transform:none;clip-path:none;mix-blend-mode:normal}
+.av2-color{margin:7px 0 4px;font-size:11px;font-weight:600;line-height:1.4}
+.av2-strap-price{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;margin-bottom:8px;font-size:10px;line-height:1.5}
+.av2-strap-price s{color:#888}
+.av2-strap-price>span{color:#171717}
+.av2-strap-price strong{color:#171717;font-weight:600}
+.av2-strap-action{display:flex;align-items:center;justify-content:center;min-height:29px;margin-top:auto;padding:4px 2px;border:1px solid #d8d8d8;border-radius:999px;color:#171717;font-size:10px;line-height:1.4;text-align:center}
+.av2-selected-text{display:none}
+.av2-choice>input:checked+.av2-strap-body{border-color:#171717;box-shadow:0 0 0 1px #171717;background:#f7f7f7}
+.av2-choice>input:checked+.av2-strap-body .av2-strap-action{background:#171717;color:#fff;border-color:#171717}
+.av2-choice>input:checked+.av2-strap-body .av2-add-text{display:none}
+.av2-choice>input:checked+.av2-strap-body .av2-selected-text{display:inline}
+.av2-choice>input:disabled+.av2-strap-body{opacity:.5;cursor:not-allowed}
+.av2-buy-row{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:16px 0 0}
+.av2-buy-row>.av2-qty{order:1}
+.av2-buy-row>.anox-ready-ship3{order:2}
+.av2-qty{display:flex;align-items:center;flex:0 0 auto;min-height:49px;border:1.5px solid #d6dde8;border-radius:999px;background:#fff;overflow:hidden;direction:ltr}
+.av2 .av2-qty>button{display:flex;align-items:center;justify-content:center;width:40px;height:100%;min-height:46px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#171717;font:400 20px/1 Arial,sans-serif;box-shadow:none;cursor:pointer}
+.av2-qty>button::before,.av2-qty>button::after{display:none}
+.av2 .av2-qty>button:disabled{color:#c3c8d0;cursor:not-allowed}
+.av2 .av2-qty>input{width:34px;height:100%;min-height:46px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#171717;font-family:inherit;font-size:15px;font-weight:700;text-align:center;box-shadow:none;-moz-appearance:textfield;appearance:textfield}
+.av2-qty>input::-webkit-outer-spin-button,.av2-qty>input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.av2-qty>input:focus{outline:none}
+.av2-qty:focus-within{border-color:#1676ff}
+.av2-more{margin:16px 0 0;padding:12px;border:1px solid #e2e2e2;border-radius:13px;background:#fafafa}
+.av2 .av2-more>h3{font-size:14px;margin:0 0 10px}
+.av2-more-row{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:13px;font-weight:600}
+.av2-more-row:last-child{margin:0}
+.av2-more-row>span{flex:0 0 auto;min-width:52px}
+.av2 .av2-more-row>select{flex:1;min-width:0;min-height:42px;margin:0;padding:8px 10px;border:1px solid #d6dde8;border-radius:10px;background:#fff;color:#171717;font:inherit;font-weight:400}
+.av2 .av2-cta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;flex:1 1 0;gap:6px 9px;width:auto;min-width:0;min-height:49px;margin:0;padding:13px 16px;border:0;border-radius:999px;background:#171717;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;box-shadow:none}
+.av2-cta::before,.av2-cta::after{display:none}
+.av2-cta-prices{display:flex;align-items:center;gap:7px;font-size:14px}
+.av2-cta-prices s{color:#bdbdbd;font-size:12px}
+.av2 .av2-cta:disabled{background:#e1e3e6;color:#797e86;cursor:not-allowed}
+.av2-total-note{text-align:center;color:#666666;font-size:12px;margin:0 0 10px}
+.av2-error{margin:12px 0;padding:12px;border-radius:9px;background:#fff2f2;color:#a51d27;font-size:13px}
+.av2-error p{margin:0 0 6px}
+.av2-error a{color:inherit}
+.av2-faq{display:grid;gap:7px;margin-top:24px;padding:7px;border-radius:17px;background:#f4f4f4}
+.av2-faq>details{min-width:0;border:0;border-radius:12px;background:#fff;overflow:hidden}
+.av2-faq summary{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:55px;padding:15px;color:#292929;font-size:14px;line-height:1.5;list-style:none;cursor:pointer}
+.av2-faq summary::-webkit-details-marker{display:none}
+.av2-faq summary::marker{content:""}
+.av2-faq summary::before,.av2-faq summary::after{display:none}
+.av2-faq summary>span{font-size:23px;font-weight:400;color:#777;line-height:1}
+.av2-faq details[open]>summary>span{transform:rotate(45deg)}
+.av2-answer{padding:0 15px 20px;color:#717171;font-size:13px;line-height:1.85;overflow-wrap:anywhere;overflow-x:auto}
+.av2-answer p{margin:0 0 12px}
+.av2-answer strong,.av2-answer h4{color:#252525}
+.av2-answer h4{font-size:14px;margin:15px 0 8px}
+.av2-answer a{color:inherit;text-decoration:underline}
+.av2-answer img,.av2-answer video,.av2-answer iframe{max-width:100%}
+.av2-answer img,.av2-answer video{height:auto}
+.av2 button:focus-visible,.av2 summary:focus-visible,.av2 a:focus-visible,.av2-choice>input:focus-visible+span{outline:2px solid #171717;outline-offset:3px}
+.av2-videos{width:100%;min-width:0;margin:20px 0 0}
+.av2-video-track{display:flex;gap:12px;width:100%;padding:4px 2px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none}
+.av2-video-track::-webkit-scrollbar{display:none}
+.av2 .av2-video-card{position:relative;display:block;flex:0 0 calc((100% - 36px)/4);min-width:0;aspect-ratio:9/16;margin:0;padding:0;border:0;border-radius:9px;overflow:hidden;background:#eeefef;color:#fff;cursor:pointer;scroll-snap-align:start;box-shadow:none}
+.av2-video-card::before,.av2-video-card::after{display:none}
+.av2-video-card>img,.av2-video-card>video{position:absolute;inset:0;display:block;width:100%;height:100%;margin:0;object-fit:cover;pointer-events:none}
+.av2-video-play{position:absolute;left:8px;bottom:10px;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#171717;color:#fff;pointer-events:none}
+.av2-video-play svg{margin-left:1px}
+.av2-video-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:7px;background:linear-gradient(145deg,#f0f1f2,#e3e6e8);color:#8e969f;font-size:11px;font-family:inherit}
+.av2 .av2-video-card:disabled{cursor:default}
+.av2-video-card:disabled .av2-video-play{opacity:.4}
+.av2-video-dialog{position:fixed;inset:0;width:min(420px,calc(100vw - 28px));max-width:none;max-height:calc(100dvh - 32px);margin:auto;padding:0;overflow:auto;border:0;border-radius:16px;background:#080808;color:#fff}
+.av2-video-dialog:not([open]){display:none}
+.av2-video-dialog::backdrop{background:rgba(0,0,0,.76)}
+.av2-video-dialog>video{display:block;width:100%;height:auto;max-height:calc(100dvh - 88px);margin:0;background:#080808;object-fit:contain}
+.av2-video-bar{display:flex;align-items:center;justify-content:flex-end;height:48px;padding:6px 10px}
+.av2-video-bar>button{display:flex;align-items:center;justify-content:center;width:36px;height:36px;margin:0;padding:0;border:0;border-radius:50%;background:#292929;color:#fff;font-family:Arial,sans-serif;font-size:25px;line-height:1;cursor:pointer}
+@media(max-width:749px){
+.av2{padding:28px 14px}
+.av2-layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"info" "gallery" "purchase";grid-template-rows:auto;gap:18px;max-width:540px}
+.av2 h2{font-size:28px}
+.av2-prices>span{font-size:24px}
+.av2-prices>s{font-size:19px}
+.av2-thumbs button{height:60px}
+.av2-choice-body{flex-direction:column;text-align:center}
+.av2-buy-row{gap:8px}
+.av2 .av2-qty>button{width:34px}
+.av2 .av2-qty>input{width:28px}
+.av2 .av2-cta{padding:13px 12px}
+.av2-video-track{gap:10px}
+.av2 .av2-video-card{flex-basis:calc((100% - 30px)/4);border-radius:8px}
+.av2-video-play{left:7px;bottom:9px;width:25px;height:25px}
+}
+@media(max-width:360px){
+.av2-straps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+
+<script>
+(() => {
+if (customElements.get('anox-v2-product-v3')) return;
+customElements.define('anox-v2-product-v3', class extends HTMLElement {
+connectedCallback() {
+this.frame = requestAnimationFrame(() => this.init());
+}
+init() {
+if (this.controller || !this.isConnected) return;
+this.form = this.querySelector('form');
+if (!this.form) return;
+this.controller = new AbortController();
+const options = { signal: this.controller.signal };
+this.format = new Intl.NumberFormat('he-IL', {
+style: 'currency',
+currency: this.dataset.currency || 'ILS',
+minimumFractionDigits: 0,
+maximumFractionDigits: 2
+});
+this.photos = [...this.querySelectorAll('[data-photo]')];
+this.photos.forEach(button => {
+button.addEventListener('click', () => this.showPhoto(button.dataset), options);
+});
+this.querySelectorAll('[data-variant]').forEach(input => {
+input.addEventListener('change', () => this.sync(), options);
+});
+this.querySelectorAll('[data-v2-wear]').forEach(button => {
+button.addEventListener('click', () => {
+if (this.busy) return;
+const candidates = [...this.querySelectorAll('[data-variant]')]
+.filter(input => input.dataset.wear === button.dataset.v2Wear);
+const next = candidates.find(input => (
+input.dataset.color === this.selected?.dataset.color &&
+input.dataset.available === 'true'
+)) || candidates.find(input => input.dataset.available === 'true') || candidates[0];
+if (!next) return;
+next.checked = true;
+this.sync();
+}, options);
+});
+this.querySelector('[data-v2-clear]')?.addEventListener('click', () => {
+if (this.busy) return;
+this.querySelectorAll('[data-strap]').forEach(input => {
+input.checked = false;
+});
+this.totals();
+}, options);
+this.querySelectorAll('[data-strap]').forEach(input => {
+input.addEventListener('change', () => this.totals(), options);
+});
+this.initQty(options);
+this.form.addEventListener('submit', event => this.submit(event), { ...options, capture: true });
+this.form.addEventListener('reset', () => {
+cancelAnimationFrame(this.resetFrame);
+this.resetFrame = requestAnimationFrame(() => this.sync());
+}, options);
+const help = this.querySelector('[data-help-toggle]');
+const bubble = this.querySelector('[data-help-bubble]');
+if (help && bubble) {
+help.addEventListener('click', () => {
+const open = help.getAttribute('aria-expanded') !== 'true';
+help.setAttribute('aria-expanded', String(open));
+bubble.hidden = !open;
+}, options);
+document.addEventListener('click', event => {
+if (!help.contains(event.target) && !bubble.contains(event.target)) {
+this.closeHelp();
+}
+}, options);
+document.addEventListener('keydown', event => {
+if (event.key === 'Escape' && !bubble.hidden) {
+this.closeHelp();
+help.focus({ preventScroll: true });
+}
+}, options);
+}
+this.initVideos(options);
+this.sync();
+const extras = this.querySelector('[data-extras]');
+if (extras) extras.hidden = false;
+}
+initQty(options) {
+this.qtyInput = this.querySelector('[data-qty]');
+this.qtyPlus = this.querySelector('[data-qty-plus]');
+this.qtyMinus = this.querySelector('[data-qty-minus]');
+if (!this.qtyInput) return;
+this.qtyPlus?.addEventListener('click', () => this.setQty(this.qty() + 1), options);
+this.qtyMinus?.addEventListener('click', () => this.setQty(this.qty() - 1), options);
+this.qtyInput.addEventListener('input', () => {
+if (this.qtyInput.value !== '') this.totals();
+}, options);
+this.qtyInput.addEventListener('change', () => this.setQty(this.qty()), options);
+this.qtyInput.addEventListener('blur', () => this.setQty(this.qty()), options);
+}
+qtyMax() {
+return Number(this.qtyInput?.max) || 10;
+}
+qty() {
+if (!this.qtyInput) return 1;
+const value = Math.floor(Number(this.qtyInput.value));
+if (!Number.isFinite(value) || value < 1) return 1;
+return Math.min(value, this.qtyMax());
+}
+setQty(value) {
+if (!this.qtyInput) return;
+this.qtyInput.value = String(Math.min(Math.max(1, Math.floor(value) || 1), this.qtyMax()));
+this.totals();
+}
+variantData(id) {
+return this.querySelector('[data-variant][value="' + id + '"]')?.dataset;
+}
+braceletIds() {
+return [
+this.selected.value,
+...[...this.querySelectorAll('[data-extra-variant]')].map(s => s.value)
+];
+}
+lines() {
+const map = new Map();
+this.braceletIds().forEach(id => map.set(id, (map.get(id) || 0) + 1));
+return [...map].map(([id, quantity]) => ({ id: Number(id), quantity }));
+}
+renderMore() {
+const box = this.querySelector('[data-more]');
+if (!box || !this.selected) return;
+const need = this.qty() - 1;
+const rows = [...box.querySelectorAll('.av2-more-row')];
+const variants = [...this.querySelectorAll('[data-variant]')];
+for (let i = rows.length; i < need; i++) {
+const row = document.createElement('label');
+row.className = 'av2-more-row';
+row.innerHTML = '<span>צמיד ' + (i + 2) + '</span>';
+const select = document.createElement('select');
+select.setAttribute('data-extra-variant', '');
+select.setAttribute('aria-label', 'רצועה וצבע לצמיד ' + (i + 2));
+variants.forEach(v => {
+const ok = v.dataset.available === 'true';
+const option = new Option(
+this.wearLabel(v.dataset.wear) + ' / ' + v.dataset.color + (ok ? '' : ' – אזל מהמלאי'),
+v.value
+);
+option.disabled = !ok;
+select.add(option);
+});
+select.value = this.selected.value;
+select.addEventListener('change', () => this.totals());
+row.append(select);
+box.append(row);
+}
+rows.slice(need).forEach(row => row.remove());
+box.hidden = need < 1;
+}
+initVideos(options) {
+this.videoDialog = this.querySelector('.av2-video-dialog');
+this.videoPlayer = this.querySelector('[data-video-player]');
+if (!this.videoDialog || !this.videoPlayer) return;
+this.querySelectorAll('[data-video-src]').forEach(button => {
+button.addEventListener('click', () => {
+this.videoTrigger = button;
+this.videoPlayer.pause();
+this.videoPlayer.src = button.dataset.videoSrc;
+if (button.dataset.videoPoster) {
+this.videoPlayer.poster = button.dataset.videoPoster;
+} else {
+this.videoPlayer.removeAttribute('poster');
+}
+this.videoDialog.showModal();
+const playback = this.videoPlayer.play();
+if (playback) playback.catch(() => {});
+}, options);
+});
+this.querySelector('[data-video-close]').addEventListener('click', () => this.videoDialog.close(), options);
+this.videoDialog.addEventListener('click', event => {
+if (event.target === this.videoDialog) this.videoDialog.close();
+}, options);
+this.videoDialog.addEventListener('close', () => {
+this.stopVideo();
+if (this.videoTrigger?.isConnected) {
+this.videoTrigger.focus({ preventScroll: true });
+}
+}, options);
+}
+stopVideo() {
+if (!this.videoPlayer) return;
+this.videoPlayer.pause();
+this.videoPlayer.removeAttribute('src');
+this.videoPlayer.removeAttribute('poster');
+this.videoPlayer.load();
+}
+wearLabel(wear) {
+return wear === 'למפרק' ? 'לשורש כף היד' : wear;
+}
+updateOrderSummary() {
+const clear = this.querySelector('[data-v2-clear]');
+if (clear) {
+clear.hidden = !this.straps().length;
+clear.disabled = !!this.busy;
+}
+this.querySelectorAll('[data-v2-wear]').forEach(button => {
+button.disabled = !!this.busy;
+});
+}
+closeHelp() {
+const toggle = this.querySelector('[data-help-toggle]');
+const bubble = this.querySelector('[data-help-bubble]');
+if (toggle) toggle.setAttribute('aria-expanded', 'false');
+if (bubble) bubble.hidden = true;
+}
+money(cents) {
+return this.format.format(cents / 100);
+}
+straps() {
+return [...this.querySelectorAll('[data-strap]:checked')]
+.filter(input => input.dataset.available === 'true');
+}
+showPhoto(data) {
+const image = this.querySelector('[data-main]');
+if (!image || !data.src) return;
+image.src = data.src;
+image.alt = data.alt || '';
+if (data.width && data.height) {
+image.width = Number(data.width);
+image.height = Number(data.height);
+}
+this.photos.forEach(button => {
+button.setAttribute('aria-pressed', String(button.dataset.src === data.src));
+});
+}
+sync() {
+this.selected = this.querySelector('[data-variant]:checked');
+if (!this.selected) return;
+const d = this.selected.dataset;
+const price = Number(d.price);
+const old = Number(d.old);
+this.querySelectorAll('[data-base-price]').forEach(element => {
+element.textContent = this.money(price);
+});
+const previous = this.querySelector('[data-base-old]');
+previous.textContent = this.money(old);
+previous.hidden = old <= price;
+this.querySelector('[data-half]').textContent = this.money(Math.round(price / 2));
+this.querySelector('[data-included-title]').textContent = this.wearLabel(d.wear) + ' / ' + d.color;
+this.querySelectorAll('[data-v2-color-type]').forEach(label => {
+label.hidden = label.dataset.v2ColorType !== d.wear;
+});
+this.querySelectorAll('[data-v2-wear]').forEach(button => {
+button.setAttribute('aria-pressed', String(button.dataset.v2Wear === d.wear));
+});
+const suggestion = this.querySelector('[data-v2-suggestion]');
+if (suggestion) {
+suggestion.textContent = d.wear === 'לזרוע'
+? 'בחרתם רצועת זרוע. רוצים לענוד גם על היד? אפשר להוסיף רצועה לשורש כף היד.'
+: 'בחרתם רצועה ליד. רוצים לענוד גם על הזרוע? אפשר להוסיף רצועת זרוע.';
+}
+const included = this.querySelector('[data-included-image]');
+if (included && d.src) included.src = d.src;
+this.querySelector('[data-product-link]').href = d.url;
+this.showPhoto(d);
+this.totals();
+}
+totals() {
+if (!this.selected) return;
+const d = this.selected.dataset;
+const extras = this.straps();
+const quantity = this.qty();
+let price = 0;
+let old = 0;
+this.renderMore();
+this.braceletIds().forEach(id => {
+const v = this.variantData(id) || d;
+const unit = Number(v.price);
+price += unit;
+old += Math.max(Number(v.old), unit);
+});
+extras.forEach(input => {
+const amount = Number(input.dataset.price);
+price += amount;
+old += Math.max(Number(input.dataset.old), amount);
+});
+this.querySelector('[data-total-price]').textContent = this.money(price);
+const previous = this.querySelector('[data-total-old]');
+previous.textContent = this.money(old);
+previous.hidden = old <= price;
+const available = d.available === 'true';
+this.querySelector('[data-cta-prices]').hidden = !available;
+this.querySelector('[data-submit]').disabled = !available || !!this.busy;
+this.querySelector('[data-submit-text]').textContent = this.busy
+? 'מוסיף לסל…'
+: available ? 'הוספה לסל' : 'אזל מהמלאי';
+if (this.qtyMinus) this.qtyMinus.disabled = !!this.busy || quantity <= 1;
+if (this.qtyPlus) this.qtyPlus.disabled = !!this.busy || quantity >= this.qtyMax();
+this.updateOrderSummary();
+const note = this.querySelector('[data-total-note]');
+note.hidden = false;
+const included = d.wear === 'לזרוע' ? 'רצועת זרוע' : 'רצועה לשורש כף היד';
+const base = quantity === 1
+? 'המחיר כולל את הצמיד עם ' + included
+: 'המחיר כולל ' + quantity + ' צמידים, כל אחד עם הרצועה שנבחרה לו';
+note.textContent = extras.length === 0
+? (quantity === 1 ? base + ' בצבע ' + d.color : base)
+: extras.length === 1
+? base + ' ורצועה נוספת אחת'
+: base + ' ו־' + extras.length + ' רצועות נוספות';
+}
+disconnectedCallback() {
+cancelAnimationFrame(this.frame);
+cancelAnimationFrame(this.resetFrame);
+this.controller?.abort();
+this.controller = null;
+this.stopVideo();
+if (this.videoDialog?.open) this.videoDialog.close();
+}
+});
+})();
+</script>
+
+<style>
+.av2 .av2-video-dialog{padding:0;overflow:hidden;background:transparent;box-shadow:none;max-height:calc(100dvh - 32px)}
+.av2 .av2-video-dialog::backdrop{background:transparent;backdrop-filter:none}
+.av2 .av2-video-dialog>video{display:block;width:100%;height:auto;max-height:calc(100dvh - 32px);margin:0;border-radius:16px;background:transparent;object-fit:contain}
+.av2 .av2-video-bar{position:absolute;top:10px;left:10px;right:auto;z-index:2;width:36px;height:36px;padding:0;background:transparent;pointer-events:none}
+.av2 .av2-video-bar>button{width:36px;height:36px;margin:0;background:#fff;color:#222;box-shadow:0 2px 8px rgba(0,0,0,.15);pointer-events:auto}
+.av2 .av2-strap-body{background:transparent}
+.av2 .av2-included>img,.av2 .av2-choice-body>img{display:block;padding:0;object-fit:cover;object-position:center;border-radius:10px;background:transparent}
+.av2 .av2-videos>h2{font-size:28px!important}
+</style>
+
+<script>
+(() => {
+const tag = 'anox-v2-product-v3';
+async function waitForEssentialCart() {
+const deadline = Date.now() + 8000;
+while (Date.now() < deadline) {
+if (typeof window.essentialCartApi?.openCart === 'function') {
+return window.essentialCartApi;
+}
+await new Promise(resolve => setTimeout(resolve, 100));
+}
+throw new Error('העגלה לא נטענה. רעננו את העמוד ונסו שוב.');
+}
+customElements.whenDefined(tag).then(Component => {
+const proto = Component.prototype;
+if (proto.anoxEssentialCartEnabled) return;
+proto.anoxEssentialCartEnabled = true;
+const previousTotals = proto.totals;
+proto.totals = function () {
+previousTotals.call(this);
+if (this.anoxCartNeedsOpening) {
+this.querySelector('[data-submit]').disabled = !!this.busy;
+this.querySelector('[data-submit-text]').textContent = this.busy ? 'פותח את העגלה…' : 'פתיחת העגלה';
+}
+};
+proto.submit = async function (event) {
+event.preventDefault();
+event.stopImmediatePropagation();
+if (this.busy) return;
+if (
+!this.anoxCartNeedsOpening &&
+(!this.selected || this.selected.dataset.available !== 'true')
+) return;
+const items = this.anoxCartNeedsOpening ? null : [
+...this.lines(),
+...this.straps().map(input => ({
+id: Number(input.value),
+quantity: 1
+}))
+];
+const errorBox = this.querySelector('[data-error]');
+const errorText = this.querySelector('[data-error-text]');
+errorBox.hidden = true;
+errorBox.querySelectorAll('a').forEach(link => link.remove());
+let retry = errorBox.querySelector('[data-essential-retry]');
+if (!retry) {
+retry = document.createElement('button');
+retry.type = 'button';
+retry.setAttribute('data-essential-retry', '');
+retry.textContent = 'פתיחת העגלה';
+retry.style.cssText = 'border:0;background:transparent;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:6px 0;';
+retry.addEventListener('click', () => {
+if (!this.busy) this.form.requestSubmit();
+});
+errorBox.append(retry);
+}
+retry.hidden = true;
+this.busy = true;
+this.form.setAttribute('aria-busy', 'true');
+this.totals();
+const controls = [...this.form.querySelectorAll('input, select')]
+.map(input => [input, input.disabled]);
+controls.forEach(([input]) => {
+input.disabled = true;
+});
+let requestStarted = false;
+let confirmedFailure = false;
+try {
+const api = await waitForEssentialCart();
+if (!this.anoxCartNeedsOpening) {
+requestStarted = true;
+const response = await fetch(this.dataset.addUrl, {
+method: 'POST',
+credentials: 'same-origin',
+headers: {
+'Content-Type': 'application/json',
+'Accept': 'application/json'
+},
+body: JSON.stringify({ items })
+});
+if (!response.ok) {
+confirmedFailure = true;
+const result = await response.json().catch(() => ({}));
+throw new Error(
+typeof result.description === 'string'
+? result.description
+: 'לא ניתן להוסיף את הבחירה לסל כרגע.'
+);
+}
+this.anoxCartNeedsOpening = true;
+}
+await api.openCart();
+this.anoxCartNeedsOpening = false;
+} catch (error) {
+if (requestStarted && !confirmedFailure) {
+this.anoxCartNeedsOpening = true;
+}
+errorText.textContent = this.anoxCartNeedsOpening
+? 'יש לבדוק את העגלה לפני הוספה נוספת. לחצו על פתיחת העגלה כדי להמשיך.'
+: error.message;
+retry.hidden = !this.anoxCartNeedsOpening;
+errorBox.hidden = false;
+} finally {
+controls.forEach(([input, disabled]) => {
+input.disabled = disabled;
+});
+this.busy = false;
+this.form.removeAttribute('aria-busy');
+this.totals();
+}
+};
+});
+})();
+</script>
+
+<style>
+.av2-v2{background:#ffffff}
+.av2-v2 .av2-layout{max-width:1600px}
+.av2-v2 .v2-exclusive{font-size:12px;color:#606060;margin:0 0 12px;font-weight:700}
+.av2-v2 .av2-description{display:block;font-size:14px;line-height:1.8}
+.av2-v2 .v2-step{display:flex;align-items:center;gap:9px;margin:0 0 8px}
+.av2-v2 .v2-step h3{margin:0;font-size:17px}
+.av2-v2 .v2-step-number{display:grid;place-items:center;flex:0 0 25px;height:25px;background:#eeeeee;border-radius:50%;color:#606060;font-size:12px;font-weight:700}
+.av2-v2 .v2-included-note{font-size:12px;margin:0 0 13px;color:#666666}
+.av2-v2 .v2-wear{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.av2-v2 .v2-wear button{position:relative;padding:15px 7px;border:1px solid #e2e2e2;border-radius:12px;background:white;color:#171717;font-family:inherit;cursor:pointer}
+.av2-v2 .v2-wear strong,.av2-v2 .v2-wear span,.av2-v2 .v2-wear small{display:block}
+.av2-v2 .v2-wear strong{font-size:15px}
+.av2-v2 .v2-wear span{font-size:11px;color:#747474;margin:6px 0}
+.av2-v2 .v2-wear small{font-size:10px;color:#606060}
+.av2-v2 .v2-wear [aria-pressed=true]{background:#f7f7f7;border-color:#141414;box-shadow:inset 0 0 0 1px #141414}
+.av2-v2 .v2-colors .av2-variants{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.av2-v2 .v2-colors .av2-choice-body{padding:5px;flex-direction:column;gap:5px;text-align:center;font-size:10px;line-height:1.5}
+.av2-v2 .v2-colors .av2-choice-body img{width:100%;height:52px;object-fit:contain}
+.av2-v2 .av2-extras{margin-bottom:18px}
+.av2-v2 .v2-suggestion{font-size:12px;line-height:1.7;margin:12px 0;color:#595959}
+.av2-v2 .av2-straps{grid-template-columns:repeat(4,minmax(0,1fr))}
+.av2-v2 .v2-extra-cost{color:#666666;font-size:10px}
+.av2-v2 .v2-clear{border:0;background:none;padding:10px 0;font:inherit;font-size:12px;color:#666666;text-decoration:underline;cursor:pointer}
+.av2-v2 .av2-cta{background:#141414}
+.av2-v2 .av2-included{border-color:#e2e2e2}
+.av2-v2 .av2-included>small{color:#666}
+.av2-v2 .v2-wear [aria-pressed=true]::after{content:"✓";position:absolute;top:6px;left:9px;color:#2b73e8;font-size:12px;font-weight:700}
+.av2-v2 button:focus-visible,.av2-v2 summary:focus-visible,.av2-v2 .av2-choice>input:focus-visible+span{outline-color:#2b73e8}
+@media(max-width:749px){
+.av2-v2{padding:24px 16px}
+.av2-v2 .av2-layout{max-width:540px}
+.av2-v2 .av2-main{max-height:370px;object-fit:contain}
+.av2-v2 .av2-info h2{font-size:31px}
+.av2-v2 .av2-straps{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+
+<style>
+.av2-v2 .v2-extras-heading{position:relative;gap:8px;margin-bottom:14px}
+.av2-v2 .v2-extras-heading h3{font-size:16px}
+.av2-v2 .v2-help{position:relative;display:grid;place-items:center;flex:0 0 23px;width:23px;height:23px;padding:0;margin-inline-start:auto;margin-inline-end:10px;border:1px solid #868686;border-radius:50%;background:#fff;color:#4b4b4b;font:600 13px/1 Arial,sans-serif;cursor:pointer}
+.av2-v2 .v2-help::before{content:"";position:absolute;inset:-10px}
+.av2-v2 .v2-help[aria-expanded=true]{background:#171717;color:#fff;border-color:#171717}
+.av2-v2 .v2-help-bubble{position:absolute;top:calc(100% + 12px);left:0;z-index:8;width:min(320px,100%);padding:15px 16px;border:1px solid #e2e2e2;border-radius:12px;background:#fff;box-shadow:0 10px 35px #0000001a;text-align:right;font-size:12px;line-height:1.8;color:#555}
+.av2-v2 .v2-help-bubble::before{content:"";position:absolute;top:-6px;left:10px;width:10px;height:10px;transform:rotate(45deg);background:#fff;border-top:1px solid #e2e2e2;border-left:1px solid #e2e2e2}
+.av2-v2 .v2-help-bubble p{margin:0}
+.av2-v2 .v2-help-bubble p+p{margin-top:9px}
+.av2-v2 .av2-cta{background:#1676ff}
+.av2-v2 .av2-cta:disabled{background:#e1e3e6;color:#797e86}
+.av2-v2 .av2-cta-prices s{color:#b6d4ff}
+.av2-v2 .av2-total-note{font-size:12px;line-height:1.7;color:#737b87;text-align:center;margin:16px 0 0}
+.av2-v2 .av2-strap-action{color:#1676ff;border-color:#9dc5ff}
+.av2-v2 .av2-choice>input:checked+.av2-strap-body{border-color:#1676ff;box-shadow:0 0 0 1px #1676ff;background:#f5f9ff}
+.av2-v2 .av2-choice>input:checked+.av2-strap-body .av2-strap-action{background:#1676ff;border-color:#1676ff;color:#fff}
+@media(max-width:360px){
+.av2-v2 .av2-straps{grid-template-columns:repeat(2,minmax(0,1fr))}
+.av2-v2 .v2-extras-heading h3{font-size:15px}
+}
+</style>
+
+<style>
+.av2-v2 .av2-strap-price s{color:#27854a!important}
+.av2-v2 .av2-strap-price strong{color:#e53935!important}
+.av2-v2 .av2-prices [data-base-old]{color:#e53935!important}
+</style>
+<!-- END ANOX V2 -->
