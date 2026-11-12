@@ -94,8 +94,6 @@
         accept-charset="UTF-8"
         data-buy-form
       >
-        <input type="hidden" name="quantity" value="1">
-
         <h3 class="as-buy__selection-title">המשקל שלכם</h3>
 
         <div class="as-buy__included">
@@ -214,6 +212,13 @@
           </fieldset>
         {% endif %}
 
+        <div class="as-buy__buy-row">
+        <div class="as-buy__qty" role="group" aria-label="כמות">
+          <button type="button" data-qty-plus aria-label="הוספת יחידה">+</button>
+          <input type="number" name="quantity" value="1" min="1" max="10" step="1" inputmode="numeric" data-qty aria-label="כמות">
+          <button type="button" data-qty-minus aria-label="הפחתת יחידה" disabled>−</button>
+        </div>
+
         <button
           class="as-buy__submit"
           type="submit"
@@ -245,6 +250,7 @@
             </span>
           </span>
         </button>
+        </div>
 
         <p
           class="as-buy__status"
@@ -507,7 +513,18 @@
 .as-buy__variant label{display:block;font-size:13px;margin-bottom:8px;color:#53647b}
 .as-buy__variant select{width:100%;min-height:46px;padding:10px 12px;border:1px solid #dce3ed;border-radius:12px;background:#fff;color:#182238;font-family:inherit;font-size:14px}
 
-.as-buy .as-buy__submit{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 9px;width:100%;min-height:49px;margin:22px 0 0;padding:13px 16px;border:0;border-radius:999px;background:#1676ff;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;box-shadow:none}
+.as-buy__buy-row{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:22px 0 0}
+.as-buy__buy-row>.as-buy__qty{order:1}
+.as-buy__buy-row>.anox-ready-ship3{order:2}
+.as-buy__qty{display:flex;align-items:center;flex:0 0 auto;min-height:49px;border:1.5px solid #d6dde8;border-radius:999px;background:#fff;overflow:hidden;direction:ltr}
+.as-buy .as-buy__qty>button{display:flex;align-items:center;justify-content:center;width:40px;height:100%;min-height:46px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#182238;font:400 20px/1 Arial,sans-serif;box-shadow:none;cursor:pointer}
+.as-buy__qty>button::before,.as-buy__qty>button::after{display:none}
+.as-buy .as-buy__qty>button:disabled{color:#c3c8d0;cursor:not-allowed}
+.as-buy .as-buy__qty>input{width:34px;height:100%;min-height:46px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#182238;font-family:inherit;font-size:15px;font-weight:700;text-align:center;box-shadow:none;-moz-appearance:textfield;appearance:textfield}
+.as-buy__qty>input::-webkit-outer-spin-button,.as-buy__qty>input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.as-buy .as-buy__qty>input:focus-visible{outline:none}
+.as-buy__qty:focus-within{border-color:#1676ff}
+.as-buy .as-buy__submit{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 9px;flex:1 1 0;width:auto;min-width:0;min-height:49px;margin:0;padding:13px 16px;border:0;border-radius:999px;background:#1676ff;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;box-shadow:none}
 .as-buy__submit::before,.as-buy__submit::after{display:none}
 .as-buy__cta-prices{display:flex;align-items:center;gap:7px;font-size:14px}
 .as-buy__cta-prices s{color:#c8dfff;font-size:12px;font-weight:400}
@@ -628,6 +645,10 @@
   .as-buy__price del{font-size:19px}
   .as-buy__thumbs button{height:60px}
   .as-buy__trust{font-size:10px}
+  .as-buy__buy-row{gap:8px}
+  .as-buy .as-buy__qty>button{width:34px}
+  .as-buy .as-buy__qty>input{width:28px}
+  .as-buy .as-buy__submit{padding:13px 12px}
 }
 
 @media(max-width:359px){
@@ -668,6 +689,9 @@ if (!customElements.get('anox-scale-purchase-v5')) {
         this.mainImage = this.querySelector('[data-main-image]');
         this.offer = this.querySelector('[data-bundle-offer]');
         this.toggle = this.querySelector('[data-bundle-toggle]');
+        this.qtyInput = this.querySelector('[data-qty]');
+        this.qtyPlus = this.querySelector('[data-qty-plus]');
+        this.qtyMinus = this.querySelector('[data-qty-minus]');
 
         if (!this.form || !this.select || !this.button) return;
         this.ready = true;
@@ -694,6 +718,16 @@ if (!customElements.get('anox-scale-purchase-v5')) {
 
         this.select.addEventListener('change', () => this.sync());
 
+        if (this.qtyInput) {
+          this.qtyPlus?.addEventListener('click', () => this.setQty(this.qty() + 1));
+          this.qtyMinus?.addEventListener('click', () => this.setQty(this.qty() - 1));
+          this.qtyInput.addEventListener('input', () => {
+            if (this.qtyInput.value !== '') this.sync(false);
+          });
+          this.qtyInput.addEventListener('change', () => this.setQty(this.qty()));
+          this.qtyInput.addEventListener('blur', () => this.setQty(this.qty()));
+        }
+
         if (this.toggle) {
           this.offer.hidden = false;
           this.toggle.addEventListener('change', () => this.sync(false));
@@ -706,6 +740,34 @@ if (!customElements.get('anox-scale-purchase-v5')) {
         }, true);
 
         this.sync();
+      }
+
+      qtyMax() {
+        return Number(this.qtyInput?.max) || 10;
+      }
+
+      qty() {
+        if (!this.qtyInput) return 1;
+        const value = Math.floor(Number(this.qtyInput.value));
+        if (!Number.isFinite(value) || value < 1) return 1;
+        return Math.min(value, this.qtyMax());
+      }
+
+      setQty(value) {
+        if (!this.qtyInput || this.busy || this.state !== 'idle') return;
+        this.qtyInput.value = String(
+          Math.min(Math.max(1, Math.floor(value) || 1), this.qtyMax())
+        );
+        this.sync(false);
+      }
+
+      lockQty() {
+        if (!this.qtyInput) return;
+        const locked = this.busy || this.state !== 'idle';
+        const quantity = this.qty();
+        this.qtyInput.readOnly = locked;
+        if (this.qtyMinus) this.qtyMinus.disabled = locked || quantity <= 1;
+        if (this.qtyPlus) this.qtyPlus.disabled = locked || quantity >= this.qtyMax();
       }
 
       money(cents) {
@@ -758,11 +820,14 @@ if (!customElements.get('anox-scale-purchase-v5')) {
         this.querySelector('[data-included-status]').textContent =
           available ? '✓ נבחר' : 'אזל מהמלאי';
 
+        const quantity = this.qty();
+
         const total =
-          price + (selected ? Number(this.toggle.dataset.offer) : 0);
+          price * quantity + (selected ? Number(this.toggle.dataset.offer) : 0);
 
         const regular =
-          selected ? price + Number(this.toggle.dataset.regular) : old;
+          Math.max(old, price) * quantity +
+          (selected ? Number(this.toggle.dataset.regular) : 0);
 
         this.querySelector('[data-cta-price]').textContent =
           this.money(total);
@@ -777,6 +842,7 @@ if (!customElements.get('anox-scale-purchase-v5')) {
 
         this.ctaPrices.hidden = !available;
         this.button.disabled = !available;
+        this.lockQty();
 
         this.label.textContent = !available
           ? 'אזל מהמלאי'
@@ -881,7 +947,7 @@ if (!customElements.get('anox-scale-purchase-v5')) {
         const updates = {};
 
         lines.forEach(item => {
-          updates[item.key] = Math.max(0, item.quantity - 1);
+          updates[item.key] = 0;
         });
 
         await this.request(
@@ -929,6 +995,7 @@ if (!customElements.get('anox-scale-purchase-v5')) {
         ) {
           this.busy = true;
           this.button.disabled = true;
+          this.lockQty();
           HTMLFormElement.prototype.submit.call(this.form);
           return;
         }
@@ -936,6 +1003,7 @@ if (!customElements.get('anox-scale-purchase-v5')) {
         this.busy = true;
         this.button.disabled = true;
         this.select.disabled = true;
+        this.lockQty();
 
         if (this.toggle) {
           this.toggle.disabled = true;
@@ -951,11 +1019,12 @@ if (!customElements.get('anox-scale-purchase-v5')) {
 
         let marker = '';
         let postConfirmed = false;
+        const quantity = this.qty();
 
         try {
           const items = [{
             id: Number(option.value),
-            quantity: 1
+            quantity
           }];
 
           if (bundle) {
@@ -1025,12 +1094,12 @@ if (!customElements.get('anox-scale-purchase-v5')) {
               valid =
                 cart.currency === 'ILS' &&
                 lines.length === 2 &&
-                scale?.quantity === 1 &&
+                scale?.quantity === quantity &&
                 band?.quantity === 1 &&
                 Number.isFinite(band.final_line_price) &&
                 band.final_line_price <= Number(this.toggle.dataset.offer) &&
                 Number.isFinite(scale.final_line_price) &&
-                scale.final_line_price <= Number(option.dataset.cents);
+                scale.final_line_price <= Number(option.dataset.cents) * quantity;
             } catch (error) {}
 
             if (!valid) {
@@ -1086,6 +1155,8 @@ if (!customElements.get('anox-scale-purchase-v5')) {
             this.toggle.disabled =
               !idle || this.offerUnavailable;
           }
+
+          this.lockQty();
 
           if (idle) {
             this.sync(false);
