@@ -17,12 +17,13 @@
   assign anox_poster_7 = ''
   assign anox_poster_8 = ''
 
-  assign p = all_products['anox-v4']
+  assign p = product
+  assign anox_model = p.title | split: ' - ' | first | split: ' – ' | first | strip
   assign straps = all_products['רצועה-אחד-נוספת']
   assign uid = 'anox-complete-' | append: section.id | append: block.id
 %}
 
-{% if p != blank %}
+{% if request.page_type == 'product' and p != blank %}
   {% liquid
     assign chosen = p.selected_or_first_available_variant
     assign main_image = chosen.featured_image | default: p.featured_image
@@ -138,7 +139,7 @@
             {% endif %}
 
             <div>
-              <strong>ANOX V4</strong>
+              <strong>{{ anox_model | escape }}</strong>
               <span data-included-title>{{ chosen.title | escape }}</span>
               <span data-base-price>{{ chosen.price | money }}</span>
             </div>
