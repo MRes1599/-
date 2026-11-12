@@ -1,0 +1,1222 @@
+{% liquid
+assign anox_video_1 = 'https://cdn.shopify.com/videos/c/o/v/f9e18ad46ee6424c89fe824ccf542d73.mp4'
+assign anox_video_2 = 'https://cdn.shopify.com/videos/c/o/v/6fec3110e4ee45d38dc118d90a0cebd0.mp4'
+assign anox_video_3 = 'https://cdn.shopify.com/videos/c/o/v/59902ee29d3e42e3ab86e9b603973fb8.mp4'
+assign anox_video_4 = 'https://cdn.shopify.com/videos/c/o/v/297231843adf41ed87d86007d9c6dd77.mp4'
+assign anox_video_5 = 'https://cdn.shopify.com/videos/c/o/v/59902ee29d3e42e3ab86e9b603973fb8.mp4'
+assign anox_video_6 = 'https://cdn.shopify.com/videos/c/o/v/a9bfaeec207b40f1a335e5d36bf9ec85.mp4'
+assign anox_video_7 = ''
+assign anox_video_8 = ''
+
+assign anox_poster_1 = ''
+assign anox_poster_2 = ''
+assign anox_poster_3 = ''
+assign anox_poster_4 = ''
+assign anox_poster_5 = ''
+assign anox_poster_6 = ''
+assign anox_poster_7 = ''
+assign anox_poster_8 = ''
+
+assign supported_handles = 'anox-v1|anox-v3|anox-v4|צמיד-מעקב-בריאותי-חכם|anox-v6-צמיד-למעקב-בריאותי|anox-v7-time-צמיד-למעקב-בריאותי-עם-תצוגת-שעה' | split: '|'
+assign current_handle = product.handle | url_decode
+assign p = product
+assign anox_supported = false
+
+if request.page_type == 'product'
+if supported_handles contains current_handle
+assign anox_supported = true
+endif
+else
+assign p = all_products['anox-v4']
+assign anox_supported = true
+endif
+
+assign anox_model = 'ANOX'
+
+case current_handle
+when 'anox-v1'
+assign anox_model = 'ANOX V1'
+when 'anox-v3'
+assign anox_model = 'ANOX V3'
+when 'anox-v4'
+assign anox_model = 'ANOX V4'
+when 'צמיד-מעקב-בריאותי-חכם'
+assign anox_model = 'ANOX V5'
+when 'anox-v6-צמיד-למעקב-בריאותי'
+assign anox_model = 'ANOX V6'
+when 'anox-v7-time-צמיד-למעקב-בריאותי-עם-תצוגת-שעה'
+assign anox_model = 'ANOX V7 Time'
+else
+assign anox_model = 'ANOX V4'
+endcase
+
+assign straps = all_products['רצועה-אחד-נוספת']
+assign strap_type_key = 'option1'
+assign strap_color_key = 'option2'
+
+if anox_model == 'ANOX V5'
+assign straps = all_products['רצועה-אחת-נוספת']
+assign strap_type_key = 'option2'
+assign strap_color_key = 'option1'
+endif
+
+assign uid = 'anox-complete-' | append: section.id | append: block.id
+%}
+
+{% if anox_supported and p != blank %}
+{% liquid
+assign chosen = p.selected_or_first_available_variant
+assign main_image = chosen.featured_image | default: p.featured_image
+assign half_price = chosen.price | divided_by: 2.0 | round
+assign rating = p.metafields.reviews.rating.value
+assign reviews = p.metafields.reviews.rating_count.value
+%}
+
+<anox-complete-with-videos
+class="axp"
+dir="rtl"
+data-currency="{{ cart.currency.iso_code | default: shop.currency }}"
+data-add-url="{{ routes.cart_add_url }}.js"
+data-cart-url="{{ routes.cart_url }}"
+aria-labelledby="{{ uid }}-title"
+>
+<div class="axp-layout">
+
+<div class="axp-info">
+{% if rating != blank and reviews > 0 %}
+<p class="axp-rating">
+<span aria-hidden="true">★</span>
+{{ rating.rating }} מתוך {{ rating.scale_max }}
+· {{ reviews }} חוות דעת
+</p>
+{% endif %}
+
+<h2 id="{{ uid }}-title">{{ p.title | escape }}</h2>
+
+<div class="axp-prices" aria-live="polite" aria-atomic="true">
+<s
+data-base-old
+{% unless chosen.compare_at_price > chosen.price %}hidden{% endunless %}
+aria-label="מחיר קודם"
+>{{ chosen.compare_at_price | money }}</s>
+
+<span data-base-price aria-label="מחיר נוכחי">
+{{ chosen.price | money }}
+</span>
+</div>
+
+<p class="axp-installments">
+או <strong data-half>{{ half_price | money }}</strong>
+ב־2 תשלומים ללא ריבית
+</p>
+
+{% if p.description != blank %}
+<p class="axp-description">
+{{ p.description | strip_html | truncatewords: 45 }}
+</p>
+{% endif %}
+</div>
+
+<div class="axp-gallery">
+{% if main_image != blank %}
+<img
+class="axp-main"
+data-main
+src="{{ main_image | image_url: width: 1200 }}"
+alt="{{ main_image.alt | default: p.title | escape }}"
+width="{{ main_image.width }}"
+height="{{ main_image.height }}"
+loading="lazy"
+>
+{% endif %}
+
+{% if p.images.size > 1 %}
+<div class="axp-thumbs" aria-label="תמונות המוצר">
+{% for photo in p.images %}
+<button
+type="button"
+data-photo
+data-src="{{ photo | image_url: width: 1200 }}"
+data-alt="{{ photo.alt | default: p.title | escape }}"
+data-width="{{ photo.width }}"
+data-height="{{ photo.height }}"
+aria-label="הצגת תמונה {{ forloop.index }}"
+aria-pressed="{% if photo.id == main_image.id %}true{% else %}false{% endif %}"
+>
+<img
+src="{{ photo | image_url: width: 180 }}"
+alt=""
+width="{{ photo.width }}"
+height="{{ photo.height }}"
+loading="lazy"
+>
+</button>
+{% endfor %}
+</div>
+{% endif %}
+</div>
+
+<div class="axp-purchase">
+<form
+method="post"
+action="{{ routes.cart_add_url }}"
+accept-charset="UTF-8"
+>
+<input type="hidden" name="form_type" value="product">
+<input type="hidden" name="utf8" value="✓">
+
+<h3>הצמיד שלכם</h3>
+
+<div class="axp-included">
+{% if main_image != blank %}
+<img
+data-included-image
+src="{{ main_image | image_url: width: 180 }}"
+alt=""
+width="68"
+height="68"
+>
+{% endif %}
+
+<div>
+<strong>{{ anox_model | escape }}</strong>
+<span data-included-title>{{ chosen.title | escape }}</span>
+<span data-base-price>{{ chosen.price | money }}</span>
+</div>
+
+<small>✓ נבחר</small>
+</div>
+
+<details
+class="axp-change"
+{% if p.has_only_default_variant %}hidden{% endif %}
+>
+<summary>שינוי צבע או דגם הצמיד</summary>
+
+<fieldset>
+<legend>
+בחרו {{ p.options | join: ' / ' | escape }}
+</legend>
+
+<div class="axp-variants">
+{% for v in p.variants %}
+{% assign vi = v.featured_image | default: p.featured_image %}
+
+<label class="axp-choice">
+<input
+type="radio"
+name="id"
+value="{{ v.id }}"
+data-variant
+data-price="{{ v.price }}"
+data-old="{{ v.compare_at_price | default: v.price }}"
+data-available="{{ v.available }}"
+data-title="{{ v.title | escape }}"
+data-url="{{ v.url }}"
+data-alt="{{ vi.alt | default: p.title | escape }}"
+{% if vi != blank %}
+data-src="{{ vi | image_url: width: 1200 }}"
+data-width="{{ vi.width }}"
+data-height="{{ vi.height }}"
+{% endif %}
+{% if v.id == chosen.id %}checked{% endif %}
+>
+
+<span class="axp-choice-body">
+{% if vi != blank %}
+<img
+src="{{ vi | image_url: width: 180 }}"
+alt=""
+width="52"
+height="52"
+loading="lazy"
+>
+{% endif %}
+
+<span>
+{{ v.title | escape }}
+{% unless v.available %}
+<small>אזל מהמלאי</small>
+{% endunless %}
+</span>
+</span>
+</label>
+{% endfor %}
+</div>
+</fieldset>
+</details>
+
+{% if straps != blank %}
+<div class="axp-extras" data-extras hidden>
+<h3>בחרו רצועה נוספת:</h3>
+
+<p class="axp-note">
+תוספת לבחירה. אפשר להוסיף או להסיר בלחיצה.
+</p>
+
+{% assign types = straps.variants | map: strap_type_key | uniq %}
+
+{% for type in types %}
+<fieldset>
+<legend>
+{% case type %}
+{% when 'ספורטיבי' %}ספורטיבית
+{% when 'קלאסי' %}קלאסית
+{% else %}{{ type | escape }}
+{% endcase %}
+</legend>
+
+<div class="axp-straps">
+{% for strap in straps.variants %}
+{% if strap[strap_type_key] == type %}
+{% assign si = strap.featured_image | default: straps.featured_image %}
+
+
+<label class="axp-choice">
+<input
+type="checkbox"
+data-strap
+value="{{ strap.id }}"
+data-price="{{ strap.price }}"
+data-old="{{ strap.compare_at_price | default: strap.price }}"
+{% unless strap.available %}disabled{% endunless %}
+>
+
+<span class="axp-strap-body">
+{% if si != blank %}
+<img
+src="{{ si | image_url: width: 240 }}"
+alt=""
+width="100"
+height="100"
+loading="lazy"
+>
+{% endif %}
+
+<span class="axp-color">
+{{ strap[strap_color_key] | escape }}
+</span>
+
+<span class="axp-strap-price">
+{% if strap.compare_at_price > strap.price %}
+<s aria-label="מחיר מקורי">
+{{ strap.compare_at_price | money }}
+</s>
+<strong aria-label="מחיר מבצע">
+{{ strap.price | money }}
+</strong>
+{% else %}
+<span>{{ strap.price | money }}</span>
+{% endif %}
+</span>
+
+<span class="axp-strap-action">
+{% if strap.available %}
+<span class="axp-add-text">הוספת רצועה</span>
+<span class="axp-selected-text">✓ נבחרה</span>
+{% else %}
+אזל מהמלאי
+{% endif %}
+</span>
+</span>
+</label>
+{% endif %}
+{% endfor %}
+</div>
+</fieldset>
+{% endfor %}
+</div>
+
+{% elsif request.design_mode %}
+<p class="axp-note">
+מוצר הרצועות אינו זמין בחנות האונליין.
+</p>
+{% endif %}
+
+<div class="axp-more" data-more hidden><h3>בחרו דגם וצבע לצמידים הנוספים</h3></div>
+
+<p class="axp-total-note" data-total-note role="status" hidden></p>
+
+<div class="axp-error" data-error role="alert" hidden>
+<p data-error-text></p>
+<a href="{{ routes.cart_url }}">לבדיקת סל הקניות</a>
+</div>
+
+<div class="axp-buy-row">
+<div class="axp-qty" role="group" aria-label="כמות צמידים">
+<button type="button" data-qty-plus aria-label="הוספת צמיד">+</button>
+<input type="number" name="quantity" value="1" min="1" max="10" step="1" inputmode="numeric" data-qty aria-label="כמות">
+<button type="button" data-qty-minus aria-label="הפחתת צמיד" disabled>−</button>
+</div>
+
+<button
+type="submit"
+class="axp-cta"
+data-submit
+{% unless chosen.available %}disabled{% endunless %}
+>
+<span data-submit-text>
+{% if chosen.available %}
+הוספה לסל
+{% else %}
+אזל מהמלאי
+{% endif %}
+</span>
+
+<span
+class="axp-cta-prices"
+data-cta-prices
+{% unless chosen.available %}hidden{% endunless %}
+>
+<s
+data-total-old
+{% unless chosen.compare_at_price > chosen.price %}hidden{% endunless %}
+aria-label="מחיר קודם"
+>{{ chosen.compare_at_price | money }}</s>
+
+<span data-total-price>{{ chosen.price | money }}</span>
+</span>
+</button>
+</div>
+</form>
+
+<div class="axp-faq">
+<details name="{{ uid }}-faq">
+<summary>
+פרטים
+<span aria-hidden="true">+</span>
+</summary>
+
+<div class="axp-answer">
+{% if anox_model == 'ANOX V7 Time' %}
+<div class="anox-v7-details">
+<p>
+<strong>ANOX V7 Time — מעקב אחר השגרה שלכם, עם תצוגת שעה על הצמיד.</strong>
+הצמיד משלב מעקב אחר הדופק, השינה והפעילות,
+עם צפייה בנתונים המפורטים באפליקציה בטלפון.
+</p>
+<h4>תצוגת שעה על היד</h4>
+<p>
+אפשר לראות את השעה ישירות על הצמיד.
+נתוני המעקב והסיכומים זמינים לצפייה באפליקציה.
+</p>
+<h4>מה אפשר לעקוב אחריו?</h4>
+<ul>
+<li><strong>דופק:</strong> מעקב אחר דופק הלב לאורך היום.</li>
+<li><strong>שינה:</strong> מעקב אחר השינה וההרגלים שלכם בלילה.</li>
+<li><strong>פעילות:</strong> מעקב אחר צעדים ונתוני הפעילות היומית.</li>
+<li><strong>קלוריות:</strong> הערכת שריפת קלוריות במהלך היום.</li>
+</ul>
+<h4>הנתונים שלכם באפליקציה</h4>
+<p>
+האפליקציה מרכזת את נתוני המעקב,
+כדי שתוכלו לצפות בסיכומים ולעקוב אחר שינויים בשגרה לאורך זמן.
+</p>
+<h4>מה כלול בהזמנה?</h4>
+<p>
+צמיד <strong>ANOX V7 Time</strong>
+עם הרצועה הכלולה, בצבע שבחרתם בעת ההזמנה.
+</p>
+<h4>רצועות נוספות לבחירה</h4>
+<p>
+אפשר להוסיף רצועות ספורטיביות או קלאסיות
+מתוך הצבעים הזמינים במלאי.
+הרצועות הנוספות נרכשות בנפרד, במחיר שמופיע ליד כל רצועה.
+</p>
+</div>
+<style>
+.axp .anox-v7-details{text-align:right;line-height:1.85}
+.axp .anox-v7-details h4{margin:20px 0 7px;color:#171717;font-size:14px;font-weight:700}
+.axp .anox-v7-details p{margin:0 0 12px}
+.axp .anox-v7-details ul{margin:0 0 14px;padding-inline-start:20px;list-style:disc}
+.axp .anox-v7-details li{margin-bottom:7px}
+</style>
+{% else %}
+{{ p.description }}
+{% endif %}
+<p>
+<a data-product-link href="{{ chosen.url }}">
+לעמוד המוצר המלא
+</a>
+</p>
+</div>
+</details>
+
+<details name="{{ uid }}-faq">
+<summary>
+משלוח, החזרות ואחריות
+<span aria-hidden="true">+</span>
+</summary>
+
+<div class="axp-answer">
+<h4>משלוח אקספרס</h4>
+<p>
+משלוח אקספרס תוך <strong>1–3 ימי עסקים</strong>
+אפשרויות המשלוח והעלות מוצגות בקופה.
+</p>
+
+{% if shop.shipping_policy.body != blank %}
+<h4>משלוחים</h4>
+{{ shop.shipping_policy.body }}
+{% endif %}
+
+{% if shop.refund_policy.body != blank %}
+<h4>החזרות והחזרים</h4>
+{{ shop.refund_policy.body }}
+{% endif %}
+
+{% if shop.shipping_policy.body == blank and shop.refund_policy.body == blank %}
+<p>
+למידע נוסף על משלוחים והחזרות, ניתן לפנות לשירות הלקוחות.
+</p>
+{% endif %}
+
+<h4>אחריות ושירות</h4>
+<p>
+לבירור תנאי האחריות לדגם {{ anox_model | escape }} ולקבלת שירות,
+ניתן לפנות אלינו בטלפון
+<a href="tel:+972515508143"><bdi>0515508143</bdi></a>.
+</p>
+
+{% if shop.terms_of_service != blank %}
+<a href="{{ shop.terms_of_service.url }}">
+לתנאי החנות המלאים
+</a>
+{% endif %}
+</div>
+</details>
+
+<details name="{{ uid }}-faq">
+<summary>
+מה ההבדל משעונים חכמים אחרים?
+<span aria-hidden="true">+</span>
+</summary>
+
+<div class="axp-answer">
+<p>
+<strong>
+{{ anox_model | escape }} מתמקד במעקב אחר השגרה שלך,
+עם הצגת הנתונים באפליקציה בטלפון.
+</strong>
+</p>
+
+<p>
+{% if anox_model == 'ANOX V7 Time' %}
+<strong>תצוגת שעה על הצמיד:</strong>
+הצמיד מציג את השעה, והנתונים המפורטים זמינים באפליקציה.
+{% else %}
+<strong>ללא מסך על הצמיד:</strong>
+צפייה בנתונים נעשית דרך האפליקציה.
+{% endif %}
+</p>
+
+<p>
+<strong>מעקב לאורך היום:</strong>
+נתוני השינה, הפעילות וההתאוששות עוזרים להכיר את ההרגלים שלך.
+</p>
+
+<p>
+<strong>מיקוד בשגרה שלך:</strong>
+מתאים למי שמחפש צמיד למעקב,
+כשהטלפון משמש לצפייה במידע.
+</p>
+
+<p>
+להשוואת תכונות מסוימות, אפשר לעיין במפרט המלא
+של הדגם בסעיף ״פרטים״.
+</p>
+</div>
+</details>
+</div>
+
+{% liquid
+assign video_urls = anox_video_1 | append: '|' | append: anox_video_2 | append: '|' | append: anox_video_3 | append: '|' | append: anox_video_4 | append: '|' | append: anox_video_5 | append: '|' | append: anox_video_6 | append: '|' | append: anox_video_7 | append: '|' | append: anox_video_8 | split: '|'
+assign video_posters = anox_poster_1 | append: '|' | append: anox_poster_2 | append: '|' | append: anox_poster_3 | append: '|' | append: anox_poster_4 | append: '|' | append: anox_poster_5 | append: '|' | append: anox_poster_6 | append: '|' | append: anox_poster_7 | append: '|' | append: anox_poster_8 | split: '|'
+assign video_count = 0
+%}
+
+{% capture video_cards %}
+{% for i in (0..7) %}
+{% assign video_url = video_urls[i] | default: '' %}
+{% assign poster_url = video_posters[i] | default: '' %}
+
+{% if video_url != blank or request.design_mode %}
+{% assign video_count = video_count | plus: 1 %}
+
+<button
+type="button"
+class="axp-video-card"
+{% if video_url != blank %}
+data-video-src="{{ video_url | escape }}"
+data-video-poster="{{ poster_url | escape }}"
+aria-label="הפעלת סרטון {{ forloop.index }}"
+aria-haspopup="dialog"
+{% else %}
+disabled
+aria-label="מקום לסרטון {{ forloop.index }}"
+{% endif %}
+>
+{% if poster_url != blank %}
+<img
+src="{{ poster_url | escape }}"
+alt=""
+width="180"
+height="320"
+loading="lazy"
+>
+{% elsif video_url != blank %}
+<video
+src="{{ video_url | escape }}"
+muted
+playsinline
+preload="metadata"
+tabindex="-1"
+aria-hidden="true"
+></video>
+{% else %}
+<span class="axp-video-placeholder">
+סרטון {{ forloop.index }}
+</span>
+{% endif %}
+
+<span class="axp-video-play" aria-hidden="true">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+<path d="M5 3L12 8L5 13V3Z" fill="currentColor"/>
+</svg>
+</span>
+</button>
+{% endif %}
+{% endfor %}
+{% endcapture %}
+
+{% if video_count > 0 %}
+<div class="axp-videos" aria-label="סרטוני ANOX">
+<h2 style="margin:0 0 16px;font-family:inherit;font-size:28px;font-weight:700;line-height:1.2;text-align:center;color:#222;">
+אנשים אמיתיים אומרים.
+</h2>
+
+<div class="axp-video-track">
+{{ video_cards }}
+</div>
+
+<dialog class="axp-video-dialog" aria-label="צפייה בסרטון ANOX">
+<div class="axp-video-bar">
+<button
+type="button"
+data-video-close
+aria-label="סגירת הסרטון"
+>×</button>
+</div>
+
+<video
+data-video-player
+controls
+playsinline
+preload="none"
+aria-label="סרטון ANOX"
+></video>
+</dialog>
+</div>
+{% endif %}
+
+</div>
+</div>
+</anox-complete-with-videos>
+
+{% elsif request.design_mode %}
+<p dir="rtl">
+הסקשיין מתאים לדפי המוצר של ANOX V1, V3, V4, V5, V6 ו־V7.
+בחרו אחד מהדגמים האלה בתצוגה המקדימה.
+</p>
+{% endif %}
+
+<style>
+.axp{display:block;padding:40px 16px;background:#fff;color:#182238;font-family:inherit;text-align:right}
+.axp,.axp *{box-sizing:border-box}
+.axp [hidden]{display:none!important}
+.axp-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);grid-template-areas:"gallery info" "gallery purchase";grid-template-rows:auto 1fr;gap:24px 40px;max-width:1180px;margin:auto;align-items:start}
+.axp-info{grid-area:info;min-width:0}
+.axp-gallery{grid-area:gallery;min-width:0}
+.axp-purchase{grid-area:purchase;min-width:0}
+.axp h2{font-family:inherit;font-size:clamp(28px,3.4vw,44px);font-weight:700;line-height:1.25;color:#111;margin:0 0 18px}
+.axp h3{font-family:inherit;font-size:16px;font-weight:700;line-height:1.5;margin:0 0 12px;color:#182238}
+.axp-rating{font-size:12px;margin:0 0 12px}
+.axp-rating>span{color:#ffad35}
+.axp-prices{display:flex;align-items:baseline;flex-wrap:wrap;gap:9px;direction:rtl}
+.axp-prices>s{color:#ff202c;font-size:20px;font-weight:400;text-decoration-thickness:1px;white-space:nowrap;unicode-bidi:isolate}
+.axp-prices>span{color:#444;font-size:25px;font-weight:400;white-space:nowrap;unicode-bidi:isolate}
+.axp-installments{margin:4px 0 0;color:#888;font-size:14px;line-height:1.6}
+.axp-installments strong{color:#707070;font-weight:700}
+.axp-description{font-size:14px;line-height:1.8;color:#687080;margin:18px 0 0}
+.axp-main{display:block;width:100%;height:auto;aspect-ratio:auto;border-radius:15px}
+.axp-thumbs{display:flex;gap:8px;margin-top:10px;padding:3px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+.axp-thumbs::-webkit-scrollbar{display:none}
+.axp-thumbs button{display:block;flex:0 0 auto;width:auto;height:64px;margin:0;padding:0;background:transparent;border:2px solid transparent;border-radius:9px;overflow:hidden;cursor:pointer}
+.axp-thumbs button[aria-pressed="true"]{border-color:#1676ff}
+.axp-thumbs img{display:block;width:auto;height:100%;max-width:none;aspect-ratio:auto}
+.axp form{margin:0}
+.axp-included{display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid #1676ff;border-radius:13px;background:#f4f8ff}
+.axp-included>img{width:68px;height:68px;object-fit:contain;border-radius:8px;background:#f1f0ee}
+.axp-included>div{display:flex;flex:1;flex-direction:column;gap:4px;font-size:12px;min-width:0}
+.axp-included strong{font-size:15px}
+.axp-included>small{font-size:11px;color:#1676ff;white-space:nowrap}
+.axp-change{margin:10px 0 20px}
+.axp-change>summary{padding:5px 0;font-size:12px;color:#53647b;text-decoration:underline;cursor:pointer}
+.axp fieldset{min-width:0;margin:14px 0 18px;padding:0;border:0}
+.axp legend{margin:0 0 10px;padding:0;font-size:13px;font-weight:600}
+.axp-variants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.axp-choice{display:block;position:relative;min-width:0;margin:0;cursor:pointer}
+.axp-choice>input{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.axp-choice-body{display:flex;align-items:center;gap:9px;height:100%;padding:10px;border:1.5px solid #e0e2e6;border-radius:12px;background:#fff;font-size:12px}
+.axp-choice-body>img{width:48px;height:48px;object-fit:contain}
+.axp-choice-body small{display:block;font-size:10px;color:#888}
+.axp-choice>input:checked+.axp-choice-body{border-color:#1676ff;background:#f2f7ff}
+.axp-extras{margin:22px 0;padding-top:18px;border-top:1px solid #e8ebef}
+.axp-note{margin:0 0 14px;font-size:11px;line-height:1.6;color:#838894}
+.axp-straps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.axp-strap-body{display:flex;flex-direction:column;height:100%;padding:7px;border:1.5px solid #e2e5eb;border-radius:11px;background:#fff}
+.axp-strap-body>img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;border-radius:7px;background:#f0efed}
+.axp-color{margin:7px 0 4px;font-size:11px;font-weight:600;line-height:1.4}
+.axp-strap-price{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;margin-bottom:8px;font-size:10px;line-height:1.5}
+.axp-strap-price s,.axp-strap-price>span{color:#168047}
+.axp-strap-price strong{color:#dc303b;font-weight:600}
+.axp-strap-action{display:flex;align-items:center;justify-content:center;min-height:29px;margin-top:auto;padding:4px 2px;border:1px solid #9dc5ff;border-radius:999px;color:#1676ff;font-size:10px;line-height:1.4;text-align:center}
+.axp-selected-text{display:none}
+.axp-choice>input:checked+.axp-strap-body{border-color:#1676ff;box-shadow:0 0 0 1px #1676ff;background:#f5f9ff}
+.axp-choice>input:checked+.axp-strap-body .axp-strap-action{background:#1676ff;color:#fff;border-color:#1676ff}
+.axp-choice>input:checked+.axp-strap-body .axp-add-text{display:none}
+.axp-choice>input:checked+.axp-strap-body .axp-selected-text{display:inline}
+.axp-choice>input:disabled+.axp-strap-body{opacity:.5;cursor:not-allowed}
+.axp-buy-row{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:16px 0 0}
+.axp-buy-row>.axp-qty{order:1}
+.axp-buy-row>.anox-ready-ship3{order:2}
+.axp-qty{display:flex;align-items:center;flex:0 0 auto;min-height:49px;border:1.5px solid #d6dde8;border-radius:999px;background:#fff;overflow:hidden;direction:ltr}
+.axp .axp-qty>button{display:flex;align-items:center;justify-content:center;width:40px;height:100%;min-height:46px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#182238;font:400 20px/1 Arial,sans-serif;box-shadow:none;cursor:pointer}
+.axp-qty>button::before,.axp-qty>button::after{display:none}
+.axp .axp-qty>button:disabled{color:#c3c8d0;cursor:not-allowed}
+.axp .axp-qty>input{width:34px;height:100%;min-height:46px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#182238;font-family:inherit;font-size:15px;font-weight:700;text-align:center;box-shadow:none;-moz-appearance:textfield;appearance:textfield}
+.axp-qty>input::-webkit-outer-spin-button,.axp-qty>input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.axp-qty>input:focus{outline:none}
+.axp-qty:focus-within{border-color:#1676ff}
+.axp-more{margin:0 0 14px;padding:12px;border:1px solid #dce4f0;border-radius:13px;background:#f8fbff}
+.axp .axp-more>h3{font-size:14px;margin:0 0 10px}
+.axp-more-row{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:13px;font-weight:600}
+.axp-more-row:last-child{margin:0}
+.axp-more-row>span{flex:0 0 auto;min-width:52px}
+.axp .axp-more-row>select{flex:1;min-width:0;min-height:42px;margin:0;padding:8px 10px;border:1px solid #d6dde8;border-radius:10px;background:#fff;color:#182238;font:inherit;font-weight:400}
+.axp .axp-cta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;flex:1 1 0;gap:6px 9px;width:auto;min-width:0;min-height:49px;margin:0;padding:13px 16px;border:0;border-radius:999px;background:#1676ff;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;box-shadow:none}
+.axp-cta::before,.axp-cta::after{display:none}
+.axp-cta-prices{display:flex;align-items:center;gap:7px;font-size:14px}
+.axp-cta-prices s{color:#b6d4ff;font-size:12px}
+.axp .axp-cta:disabled{background:#e1e3e6;color:#797e86;cursor:not-allowed}
+.axp-total-note{text-align:center;color:#687080;font-size:12px;margin:0 0 10px}
+.axp-error{margin:12px 0;padding:12px;border-radius:9px;background:#fff2f2;color:#a51d27;font-size:13px}
+.axp-error p{margin:0 0 6px}
+.axp-error a{color:inherit}
+.axp-faq{display:grid;gap:7px;margin-top:24px;padding:7px;border-radius:17px;background:#f4f4f4}
+.axp-faq>details{min-width:0;border:0;border-radius:12px;background:#fff;overflow:hidden}
+.axp-faq summary{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:55px;padding:15px;color:#292929;font-size:14px;line-height:1.5;list-style:none;cursor:pointer}
+.axp-faq summary::-webkit-details-marker{display:none}
+.axp-faq summary::marker{content:""}
+.axp-faq summary::before,.axp-faq summary::after{display:none}
+.axp-faq summary>span{font-size:23px;font-weight:400;color:#777;line-height:1}
+.axp-faq details[open]>summary>span{transform:rotate(45deg)}
+.axp-answer{padding:0 15px 20px;color:#717171;font-size:13px;line-height:1.85;overflow-wrap:anywhere;overflow-x:auto}
+.axp-answer p{margin:0 0 12px}
+.axp-answer strong,.axp-answer h4{color:#252525}
+.axp-answer h4{font-size:14px;margin:15px 0 8px}
+.axp-answer a{color:inherit;text-decoration:underline}
+.axp-answer img,.axp-answer video,.axp-answer iframe{max-width:100%}
+.axp-answer img,.axp-answer video{height:auto}
+.axp button:focus-visible,.axp summary:focus-visible,.axp a:focus-visible,.axp-choice>input:focus-visible+span{outline:2px solid #1676ff;outline-offset:3px}
+.axp-videos{width:100%;min-width:0;margin:20px 0 0}
+.axp-video-track{display:flex;gap:12px;width:100%;padding:4px 2px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none}
+.axp-video-track::-webkit-scrollbar{display:none}
+.axp .axp-video-card{position:relative;display:block;flex:0 0 calc((100% - 36px)/4);min-width:0;aspect-ratio:9/16;margin:0;padding:0;border:0;border-radius:9px;overflow:hidden;background:#eeefef;color:#fff;cursor:pointer;scroll-snap-align:start;box-shadow:none}
+.axp-video-card::before,.axp-video-card::after{display:none}
+.axp-video-card>img,.axp-video-card>video{position:absolute;inset:0;display:block;width:100%;height:100%;margin:0;object-fit:cover;pointer-events:none}
+.axp-video-play{position:absolute;left:8px;bottom:10px;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#1676ff;color:#fff;pointer-events:none}
+.axp-video-play svg{margin-left:1px}
+.axp-video-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:7px;background:linear-gradient(145deg,#f0f1f2,#e3e6e8);color:#8e969f;font-size:11px;font-family:inherit}
+.axp .axp-video-card:disabled{cursor:default}
+.axp-video-card:disabled .axp-video-play{opacity:.4}
+.axp-video-dialog{position:fixed;inset:0;width:min(420px,calc(100vw - 28px));max-width:none;max-height:calc(100dvh - 32px);margin:auto;padding:0;overflow:auto;border:0;border-radius:16px;background:#080808;color:#fff}
+.axp-video-dialog:not([open]){display:none}
+.axp-video-dialog::backdrop{background:rgba(0,0,0,.76)}
+.axp-video-dialog>video{display:block;width:100%;height:auto;max-height:calc(100dvh - 88px);margin:0;background:#080808;object-fit:contain}
+.axp-video-bar{display:flex;align-items:center;justify-content:flex-end;height:48px;padding:6px 10px}
+.axp-video-bar>button{display:flex;align-items:center;justify-content:center;width:36px;height:36px;margin:0;padding:0;border:0;border-radius:50%;background:#292929;color:#fff;font-family:Arial,sans-serif;font-size:25px;line-height:1;cursor:pointer}
+
+@media(max-width:749px){
+.axp{padding:28px 14px}
+.axp-layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"info" "gallery" "purchase";grid-template-rows:auto;gap:18px;max-width:540px}
+.axp h2{font-size:28px}
+.axp-prices>span{font-size:24px}
+.axp-prices>s{font-size:19px}
+.axp-thumbs button{height:60px}
+.axp-choice-body{flex-direction:column;text-align:center}
+.axp-buy-row{gap:8px}
+.axp .axp-qty>button{width:34px}
+.axp .axp-qty>input{width:28px}
+.axp .axp-cta{padding:13px 12px}
+.axp-video-track{gap:10px}
+.axp .axp-video-card{flex-basis:calc((100% - 30px)/4);border-radius:8px}
+.axp-video-play{left:7px;bottom:9px;width:25px;height:25px}
+}
+
+@media(max-width:360px){
+.axp-straps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+
+<script>
+(() => {
+if (customElements.get('anox-complete-with-videos')) return;
+customElements.define('anox-complete-with-videos', class extends HTMLElement {
+connectedCallback() {
+this.frame = requestAnimationFrame(() => this.init());
+}
+init() {
+if (this.controller || !this.isConnected) return;
+this.form = this.querySelector('form');
+if (!this.form) return;
+this.controller = new AbortController();
+const options = { signal: this.controller.signal };
+this.format = new Intl.NumberFormat('he-IL', {
+style: 'currency',
+currency: this.dataset.currency || 'ILS',
+minimumFractionDigits: 0,
+maximumFractionDigits: 2
+});
+this.photos = [...this.querySelectorAll('[data-photo]')];
+this.photos.forEach(button => {
+button.addEventListener('click', () => this.showPhoto(button.dataset), options);
+});
+this.querySelectorAll('[data-variant]').forEach(input => {
+input.addEventListener('change', () => this.sync(), options);
+});
+this.querySelectorAll('[data-strap]').forEach(input => {
+input.addEventListener('change', () => this.totals(), options);
+});
+this.initQty(options);
+this.form.addEventListener('submit', event => this.submit(event), { ...options, capture: true });
+this.form.addEventListener('reset', () => {
+cancelAnimationFrame(this.resetFrame);
+this.resetFrame = requestAnimationFrame(() => this.sync());
+}, options);
+this.initVideos(options);
+this.sync();
+const extras = this.querySelector('[data-extras]');
+if (extras) extras.hidden = false;
+}
+initQty(options) {
+this.qtyInput = this.querySelector('[data-qty]');
+this.qtyPlus = this.querySelector('[data-qty-plus]');
+this.qtyMinus = this.querySelector('[data-qty-minus]');
+if (!this.qtyInput) return;
+this.qtyPlus?.addEventListener('click', () => this.setQty(this.qty() + 1), options);
+this.qtyMinus?.addEventListener('click', () => this.setQty(this.qty() - 1), options);
+this.qtyInput.addEventListener('input', () => {
+if (this.qtyInput.value !== '') this.totals();
+}, options);
+this.qtyInput.addEventListener('change', () => this.setQty(this.qty()), options);
+this.qtyInput.addEventListener('blur', () => this.setQty(this.qty()), options);
+}
+qtyMax() {
+return Number(this.qtyInput?.max) || 10;
+}
+qty() {
+if (!this.qtyInput) return 1;
+const value = Math.floor(Number(this.qtyInput.value));
+if (!Number.isFinite(value) || value < 1) return 1;
+return Math.min(value, this.qtyMax());
+}
+setQty(value) {
+if (!this.qtyInput) return;
+this.qtyInput.value = String(Math.min(Math.max(1, Math.floor(value) || 1), this.qtyMax()));
+this.totals();
+}
+variantData(id) {
+return this.querySelector('[data-variant][value="' + id + '"]')?.dataset;
+}
+braceletIds() {
+return [
+this.selected.value,
+...[...this.querySelectorAll('[data-extra-variant]')].map(s => s.value)
+];
+}
+lines() {
+const map = new Map();
+this.braceletIds().forEach(id => map.set(id, (map.get(id) || 0) + 1));
+return [...map].map(([id, quantity]) => ({ id: Number(id), quantity }));
+}
+renderMore() {
+const box = this.querySelector('[data-more]');
+if (!box || !this.selected) return;
+const need = this.qty() - 1;
+const rows = [...box.querySelectorAll('.axp-more-row')];
+const variants = [...this.querySelectorAll('[data-variant]')];
+for (let i = rows.length; i < need; i++) {
+const row = document.createElement('label');
+row.className = 'axp-more-row';
+row.innerHTML = '<span>צמיד ' + (i + 2) + '</span>';
+const select = document.createElement('select');
+select.setAttribute('data-extra-variant', '');
+select.setAttribute('aria-label', 'דגם וצבע לצמיד ' + (i + 2));
+variants.forEach(v => {
+const ok = v.dataset.available === 'true';
+const option = new Option(v.dataset.title + (ok ? '' : ' – אזל מהמלאי'), v.value);
+option.disabled = !ok;
+select.add(option);
+});
+select.value = this.selected.value;
+select.addEventListener('change', () => this.totals());
+row.append(select);
+box.append(row);
+}
+rows.slice(need).forEach(row => row.remove());
+box.hidden = need < 1;
+}
+initVideos(options) {
+this.videoDialog = this.querySelector('.axp-video-dialog');
+this.videoPlayer = this.querySelector('[data-video-player]');
+if (!this.videoDialog || !this.videoPlayer) return;
+this.querySelectorAll('[data-video-src]').forEach(button => {
+button.addEventListener('click', () => {
+this.videoTrigger = button;
+this.videoPlayer.pause();
+this.videoPlayer.src = button.dataset.videoSrc;
+if (button.dataset.videoPoster) {
+this.videoPlayer.poster = button.dataset.videoPoster;
+} else {
+this.videoPlayer.removeAttribute('poster');
+}
+this.videoDialog.showModal();
+const playback = this.videoPlayer.play();
+if (playback) playback.catch(() => {});
+}, options);
+});
+this.querySelector('[data-video-close]').addEventListener('click', () => this.videoDialog.close(), options);
+this.videoDialog.addEventListener('click', event => {
+if (event.target === this.videoDialog) this.videoDialog.close();
+}, options);
+this.videoDialog.addEventListener('close', () => {
+this.stopVideo();
+if (this.videoTrigger?.isConnected) {
+this.videoTrigger.focus({ preventScroll: true });
+}
+}, options);
+}
+stopVideo() {
+if (!this.videoPlayer) return;
+this.videoPlayer.pause();
+this.videoPlayer.removeAttribute('src');
+this.videoPlayer.removeAttribute('poster');
+this.videoPlayer.load();
+}
+money(cents) {
+return this.format.format(cents / 100);
+}
+straps() {
+return [...this.querySelectorAll('[data-strap]:checked')].filter(input => !input.disabled);
+}
+showPhoto(data) {
+const image = this.querySelector('[data-main]');
+if (!image || !data.src) return;
+image.src = data.src;
+image.alt = data.alt || '';
+if (data.width && data.height) {
+image.width = Number(data.width);
+image.height = Number(data.height);
+}
+this.photos.forEach(button => {
+button.setAttribute('aria-pressed', String(button.dataset.src === data.src));
+});
+}
+sync() {
+this.selected = this.querySelector('[data-variant]:checked');
+if (!this.selected) return;
+const d = this.selected.dataset;
+const price = Number(d.price);
+const old = Number(d.old);
+this.querySelectorAll('[data-base-price]').forEach(element => {
+element.textContent = this.money(price);
+});
+const previous = this.querySelector('[data-base-old]');
+previous.textContent = this.money(old);
+previous.hidden = old <= price;
+this.querySelector('[data-half]').textContent = this.money(Math.round(price / 2));
+this.querySelector('[data-included-title]').textContent = d.title;
+const included = this.querySelector('[data-included-image]');
+if (included && d.src) included.src = d.src;
+this.querySelector('[data-product-link]').href = d.url;
+this.showPhoto(d);
+this.totals();
+}
+totals() {
+if (!this.selected) return;
+const d = this.selected.dataset;
+const extras = this.straps();
+const quantity = this.qty();
+let price = 0;
+let old = 0;
+this.renderMore();
+this.braceletIds().forEach(id => {
+const v = this.variantData(id) || d;
+const unit = Number(v.price);
+price += unit;
+old += Math.max(Number(v.old), unit);
+});
+extras.forEach(input => {
+const amount = Number(input.dataset.price);
+price += amount;
+old += Math.max(Number(input.dataset.old), amount);
+});
+this.querySelector('[data-total-price]').textContent = this.money(price);
+const previous = this.querySelector('[data-total-old]');
+previous.textContent = this.money(old);
+previous.hidden = old <= price;
+const available = d.available === 'true';
+this.querySelector('[data-cta-prices]').hidden = !available;
+this.querySelector('[data-submit]').disabled = !available || !!this.busy;
+this.querySelector('[data-submit-text]').textContent = this.busy
+? 'מוסיף לסל…'
+: available ? 'הוספה לסל' : 'אזל מהמלאי';
+if (this.qtyMinus) this.qtyMinus.disabled = !!this.busy || quantity <= 1;
+if (this.qtyPlus) this.qtyPlus.disabled = !!this.busy || quantity >= this.qtyMax();
+const bracelets = quantity === 1 ? 'את הצמיד' : quantity + ' צמידים';
+const note = this.querySelector('[data-total-note]');
+note.hidden = !extras.length && quantity === 1;
+note.textContent = !extras.length
+? 'המחיר כולל ' + bracelets
+: extras.length === 1
+? 'המחיר כולל ' + bracelets + ' ורצועה נוספת אחת'
+: 'המחיר כולל ' + bracelets + ' ו־' + extras.length + ' רצועות נוספות';
+}
+async submit(event) {
+event.preventDefault();
+event.stopImmediatePropagation();
+if (this.busy || !this.selected || this.selected.dataset.available !== 'true') return;
+const items = [
+...this.lines(),
+...this.straps().map(input => ({ id: Number(input.value), quantity: 1 }))
+];
+const errorBox = this.querySelector('[data-error]');
+errorBox.hidden = true;
+this.busy = true;
+this.form.setAttribute('aria-busy', 'true');
+this.totals();
+const controls = [...this.form.querySelectorAll('input, select')].map(input => [input, input.disabled]);
+controls.forEach(([input]) => {
+input.disabled = true;
+});
+try {
+const response = await fetch(this.dataset.addUrl, {
+method: 'POST',
+credentials: 'same-origin',
+headers: {
+'Content-Type': 'application/json',
+'Accept': 'application/json'
+},
+body: JSON.stringify({ items })
+});
+const result = await response.json();
+if (!response.ok) {
+throw new Error(
+typeof result.description === 'string'
+? result.description
+: 'לא ניתן להוסיף את הבחירה לסל. בדקו את הסל לפני ניסיון נוסף.'
+);
+}
+window.location.assign(this.dataset.cartUrl);
+} catch (error) {
+this.querySelector('[data-error-text]').textContent =
+error instanceof TypeError || error instanceof SyntaxError
+? 'לא הצלחנו לאשר שהפריטים נוספו. בדקו את סל הקניות לפני ניסיון נוסף.'
+: error.message;
+errorBox.hidden = false;
+controls.forEach(([input, disabled]) => {
+input.disabled = disabled;
+});
+this.busy = false;
+this.form.removeAttribute('aria-busy');
+this.totals();
+}
+}
+disconnectedCallback() {
+cancelAnimationFrame(this.frame);
+cancelAnimationFrame(this.resetFrame);
+this.controller?.abort();
+this.controller = null;
+this.stopVideo();
+if (this.videoDialog?.open) this.videoDialog.close();
+}
+});
+})();
+</script>
+
+<style>
+.axp .axp-video-dialog{padding:0;overflow:hidden;background:transparent;box-shadow:none;max-height:calc(100dvh - 32px)}
+.axp .axp-video-dialog::backdrop{background:transparent;backdrop-filter:none}
+.axp .axp-video-dialog>video{display:block;width:100%;height:auto;max-height:calc(100dvh - 32px);margin:0;border-radius:16px;background:transparent;object-fit:contain}
+.axp .axp-video-bar{position:absolute;top:10px;left:10px;right:auto;z-index:2;width:36px;height:36px;padding:0;background:transparent;pointer-events:none}
+.axp .axp-video-bar>button{width:36px;height:36px;margin:0;background:#fff;color:#222;box-shadow:0 2px 8px rgba(0,0,0,.15);pointer-events:auto}
+.axp .axp-rating.axp-reviews-custom{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:fit-content;margin:0 0 12px;padding:0;direction:ltr;line-height:1}
+.axp .axp-reviews-custom .axp-reviews-stars{position:relative;display:inline-block;flex-shrink:0;color:#dedede;font-family:Arial,sans-serif;font-size:15px;line-height:1;letter-spacing:1px;white-space:nowrap;direction:ltr}
+.axp-reviews-stars>span:first-child{display:block}
+.axp-reviews-stars>span:last-child{position:absolute;top:0;left:0;width:96%;overflow:hidden;color:#ffad35;white-space:nowrap}
+.axp .axp-reviews-custom .axp-reviews-copy{color:#173353;font-family:inherit;font-size:11px;font-weight:400;line-height:1.4;white-space:nowrap;direction:rtl}
+.axp-reviews-copy bdi{font-weight:400}
+.axp .axp-strap-body>img{transform:scale(2.2);transform-origin:center;clip-path:inset(18.2857% round 5px)}
+.axp .axp-strap-body{background:transparent}
+.axp .axp-strap-body>img{background:transparent;mix-blend-mode:multiply;transform:scale(2.1);transform-origin:center;clip-path:inset(27.2727% round 5px)}
+.axp .axp-included>img,.axp .axp-choice-body>img{display:block;padding:0;object-fit:cover;object-position:center;border-radius:10px;background:transparent}
+.axp .axp-videos>h2{font-size:28px!important}
+</style>
+
+<script>
+(() => {
+function updateAnoxReviews() {
+document.querySelectorAll('.axp .axp-info').forEach(info => {
+let rating = info.querySelector('.axp-rating');
+if (!rating) {
+rating = document.createElement('p');
+rating.className = 'axp-rating';
+info.prepend(rating);
+}
+if (rating.classList.contains('axp-reviews-custom')) return;
+rating.classList.add('axp-reviews-custom');
+rating.setAttribute('aria-label', 'דירוג 4.8 מתוך 5, עם 3,671 חוות דעת ומעלה');
+rating.innerHTML = `
+<span class="axp-reviews-stars" aria-hidden="true">
+<span>★★★★★</span>
+<span>★★★★★</span>
+</span>
+<span class="axp-reviews-copy" aria-hidden="true">
+<bdi dir="ltr">3,671+</bdi> חוות דעת
+</span>
+`;
+});
+}
+updateAnoxReviews();
+if (!window.anoxCustomReviewsInstalled) {
+window.anoxCustomReviewsInstalled = true;
+document.addEventListener('shopify:section:load', updateAnoxReviews);
+if (document.readyState === 'loading') {
+document.addEventListener('DOMContentLoaded', updateAnoxReviews, { once: true });
+}
+}
+})();
+</script>
+
+<script>
+(() => {
+const tag = 'anox-complete-with-videos';
+async function waitForEssentialCart() {
+const deadline = Date.now() + 8000;
+while (Date.now() < deadline) {
+if (typeof window.essentialCartApi?.openCart === 'function') {
+return window.essentialCartApi;
+}
+await new Promise(resolve => setTimeout(resolve, 100));
+}
+throw new Error('העגלה לא נטענה. רעננו את העמוד ונסו שוב.');
+}
+customElements.whenDefined(tag).then(Component => {
+const proto = Component.prototype;
+if (proto.anoxEssentialCartEnabled) return;
+proto.anoxEssentialCartEnabled = true;
+const previousTotals = proto.totals;
+proto.totals = function () {
+previousTotals.call(this);
+if (this.anoxCartNeedsOpening) {
+this.querySelector('[data-submit]').disabled = !!this.busy;
+this.querySelector('[data-submit-text]').textContent = this.busy ? 'פותח את העגלה…' : 'פתיחת העגלה';
+}
+};
+proto.submit = async function (event) {
+event.preventDefault();
+event.stopImmediatePropagation();
+if (this.busy) return;
+if (
+!this.anoxCartNeedsOpening &&
+(!this.selected || this.selected.dataset.available !== 'true')
+) return;
+const items = this.anoxCartNeedsOpening ? null : [
+...this.lines(),
+...this.straps().map(input => ({ id: Number(input.value), quantity: 1 }))
+];
+const errorBox = this.querySelector('[data-error]');
+const errorText = this.querySelector('[data-error-text]');
+errorBox.hidden = true;
+errorBox.querySelectorAll('a').forEach(link => link.remove());
+let retry = errorBox.querySelector('[data-essential-retry]');
+if (!retry) {
+retry = document.createElement('button');
+retry.type = 'button';
+retry.setAttribute('data-essential-retry', '');
+retry.textContent = 'פתיחת העגלה';
+retry.style.cssText = 'border:0;background:transparent;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:6px 0;';
+retry.addEventListener('click', () => {
+if (!this.busy) this.form.requestSubmit();
+});
+errorBox.append(retry);
+}
+retry.hidden = true;
+this.busy = true;
+this.form.setAttribute('aria-busy', 'true');
+this.totals();
+const controls = [...this.form.querySelectorAll('input, select')].map(input => [input, input.disabled]);
+controls.forEach(([input]) => {
+input.disabled = true;
+});
+let requestStarted = false;
+let confirmedFailure = false;
+try {
+const api = await waitForEssentialCart();
+if (!this.anoxCartNeedsOpening) {
+requestStarted = true;
+const response = await fetch(this.dataset.addUrl, {
+method: 'POST',
+credentials: 'same-origin',
+headers: {
+'Content-Type': 'application/json',
+'Accept': 'application/json'
+},
+body: JSON.stringify({ items })
+});
+if (!response.ok) {
+confirmedFailure = true;
+const result = await response.json().catch(() => ({}));
+throw new Error(
+typeof result.description === 'string'
+? result.description
+: 'לא ניתן להוסיף את הבחירה לסל כרגע.'
+);
+}
+this.anoxCartNeedsOpening = true;
+}
+await api.openCart();
+this.anoxCartNeedsOpening = false;
+} catch (error) {
+if (requestStarted && !confirmedFailure) {
+this.anoxCartNeedsOpening = true;
+}
+errorText.textContent = this.anoxCartNeedsOpening
+? 'יש לבדוק את העגלה לפני הוספה נוספת. לחצו על פתיחת העגלה כדי להמשיך.'
+: error.message;
+retry.hidden = !this.anoxCartNeedsOpening;
+errorBox.hidden = false;
+} finally {
+controls.forEach(([input, disabled]) => {
+input.disabled = disabled;
+});
+this.busy = false;
+this.form.removeAttribute('aria-busy');
+this.totals();
+}
+};
+});
+})();
+</script>
+<!-- END ANOX PRODUCT -->
