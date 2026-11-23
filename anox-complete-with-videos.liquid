@@ -379,55 +379,16 @@ aria-label="מחיר קודם"
 
 <div class="axp-answer">
 <div class="axp-specs">
-<h4>עיקר הדברים</h4>
 <ul>
-<li>מעקב 24/7 אחרי נתוני הגוף: דופק, שינה, צעדים, קלוריות ופעילות יומית</li>
-<li>עמידות למים, זיעה ואבק בתקן IP68</li>
-<li>עד 30 ימי סוללה בטעינה אחת</li>
-<li>יותר מ־126 סוגי אימון באפליקציה</li>
-<li>GPS מובנה</li>
-<li>{% if p.title contains 'V7' %}תצוגת שעה על הצמיד, וכל שאר הנתונים באפליקציה{% else %}עיצוב נקי ללא מסך, וכל הנתונים באפליקציה{% endif %}</li>
-<li>רצועות סיליקון וניילון שמתחלפות בקלות</li>
-<li>תואם Android ו־iPhone</li>
+<li><strong>מעקב 24/7:</strong> דופק, שינה, צעדים, קלוריות ופעילות יומית</li>
+<li><strong>עמיד IP68:</strong> מים, זיעה ואבק, גם במקלחת ובאימון</li>
+<li><strong>סוללה:</strong> עד 30 ימים בטעינה אחת, בהתאם לשימוש</li>
+<li><strong>אימונים:</strong> יותר מ־126 סוגים באפליקציה, עם GPS מובנה</li>
+<li><strong>עיצוב:</strong> {% if p.title contains 'V7' %}תצוגת שעה על הצמיד{% else %}ללא מסך{% endif %}, כל הנתונים באפליקציה לאנדרואיד ולאייפון</li>
+<li><strong>רצועות:</strong> סיליקון או ניילון, לכל גודל יד, מתחלפות בקלות</li>
 </ul>
-<h4>מה הצמיד מודד</h4>
-<ul>
-<li><strong>דופק:</strong> מעקב רציף לאורך היום והלילה</li>
-<li><strong>שינה:</strong> משך השינה ואיכותה</li>
-<li><strong>פעילות:</strong> צעדים, מרחק וקלוריות</li>
-<li><strong>אימונים:</strong> תיעוד לפי סוג האימון, מתוך יותר מ־126 סוגים</li>
-<li><strong>מדדים נוספים:</strong> רוויון חמצן בדם, לחץ דם ורמת מתח, כהערכה כללית</li>
-</ul>
-<h4>עמידות לשגרה אמיתית</h4>
-<ul>
-<li>תקן IP68: עמיד במים, בזיעה ובאבק</li>
-<li>אפשר להתקלח ולהתאמן איתו בלי להוריד</li>
-<li>מתאים גם לעבודה בסביבה מאובקת ומלוכלכת</li>
-</ul>
-<h4>סוללה וטעינה</h4>
-<ul>
-<li>עד 30 ימים בטעינה אחת, בהתאם לאופן השימוש</li>
-<li>כבל טעינה מגנטי כלול בחבילה</li>
-</ul>
-<h4>רצועות ונוחות</h4>
-<ul>
-<li>רצועה אלסטית אוניברסלית שמתאימה לכל גודל יד</li>
-<li>רצועות סיליקון וניילון לבחירה</li>
-<li>החלפת רצועה בקלות, בלי כלים</li>
-</ul>
-<h4>אפליקציה וחיבור</h4>
-<ul>
-<li>חיבור Bluetooth לטלפון, Android או iPhone</li>
-<li>כל הנתונים, הסיכומים וההיסטוריה מרוכזים באפליקציה</li>
-<li>איתור הצמיד באמצעות רטט שמופעל מהאפליקציה</li>
-</ul>
-<h4>מה בקופסה</h4>
-<ul>
-<li>הצמיד</li>
-<li>הרצועה שבחרתם</li>
-<li>כבל טעינה מגנטי</li>
-</ul>
-<p class="axp-specs-note">הנתונים מיועדים למעקב אישי ולשיפור השגרה, ואינם תחליף לבדיקה או לייעוץ רפואי.</p>
+<p class="axp-specs-box"><strong>בקופסה:</strong> צמיד, רצועה וכבל טעינה מגנטי</p>
+<p class="axp-specs-note">למעקב אישי בלבד, לא תחליף לייעוץ רפואי.</p>
 </div>
 <p>
 <a data-product-link href="{{ chosen.url }}">
@@ -709,13 +670,13 @@ aria-label="סרטון ANOX"
 .axp-faq details[open]>summary>span{transform:rotate(45deg)}
 .axp-answer{padding:0 15px 20px;color:#717171;font-size:13px;line-height:1.85;overflow-wrap:anywhere;overflow-x:auto}
 .axp-answer p{margin:0 0 12px}
-.axp-specs{text-align:right;line-height:1.8}
-.axp .axp-specs h4{margin:18px 0 6px;color:#171717;font-size:14px;font-weight:700}
-.axp .axp-specs h4:first-child{margin-top:0}
-.axp .axp-specs ul{margin:0 0 6px;padding:0;padding-inline-start:20px;list-style:disc}
-.axp .axp-specs li{margin:0 0 4px;color:#3f4652}
+.axp-specs{text-align:right;line-height:1.75}
+.axp .axp-specs ul{margin:0 0 12px;padding:0;padding-inline-start:18px;list-style:disc}
+.axp .axp-specs li{margin:0 0 7px;color:#3f4652}
 .axp .axp-specs li::marker{color:#171717}
-.axp .axp-specs-note{margin:14px 0 0;font-size:11px;color:#8a909a}
+.axp .axp-specs li strong{color:#171717}
+.axp .axp-specs-box{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:#f6f7f9;color:#3f4652}
+.axp .axp-specs-note{margin:0;font-size:11px;color:#8a909a}
 .axp-answer strong,.axp-answer h4{color:#252525}
 .axp-answer h4{font-size:14px;margin:15px 0 8px}
 .axp-answer a{color:inherit;text-decoration:underline}
