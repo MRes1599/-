@@ -377,12 +377,18 @@ aria-label="מחיר קודם"
 </summary>
 
 <div class="axp-answer">
-{{ p.description }}
-<p>
-<a data-product-link href="{{ chosen.url }}">
-לעמוד המוצר המלא
-</a>
-</p>
+<div class="axp-specs">
+<ul>
+<li><strong>מעקב 24/7:</strong> דופק, שינה, צעדים, קלוריות ופעילות יומית</li>
+<li><strong>עמיד IP68:</strong> מים, זיעה ואבק, גם במקלחת ובאימון</li>
+<li><strong>סוללה:</strong> עד 30 ימים בטעינה אחת, בהתאם לשימוש</li>
+<li><strong>אימונים:</strong> יותר מ־126 סוגים באפליקציה, עם GPS מובנה</li>
+<li><strong>עיצוב:</strong> {% if p.title contains 'V7' %}תצוגת שעה על הצמיד{% else %}ללא מסך{% endif %}, כל הנתונים באפליקציה לאנדרואיד ולאייפון</li>
+<li><strong>רצועות:</strong> סיליקון או ניילון, לכל גודל יד, מתחלפות בקלות</li>
+<li><strong>תקינה:</strong> עומד בתו התקן האירופאי CE</li>
+</ul>
+<p class="axp-specs-box"><strong>בקופסה:</strong> צמיד, רצועה, כבל טעינה מגנטי ומדריך חיבור לאפליקציה</p>
+</div>
 </div>
 </details>
 
@@ -658,6 +664,12 @@ aria-label="סרטון ANOX"
 .axp-faq details[open]>summary>span{transform:rotate(45deg)}
 .axp-answer{padding:0 15px 20px;color:#717171;font-size:13px;line-height:1.85;overflow-wrap:anywhere;overflow-x:auto}
 .axp-answer p{margin:0 0 12px}
+.axp-specs{text-align:right;line-height:1.75}
+.axp .axp-specs ul{margin:0 0 12px;padding:0;padding-inline-start:18px;list-style:disc}
+.axp .axp-specs li{margin:0 0 7px;color:#3f4652}
+.axp .axp-specs li::marker{color:#171717}
+.axp .axp-specs li strong{color:#171717}
+.axp .axp-specs-box{margin:0;padding:10px 12px;border-radius:10px;background:#f6f7f9;color:#3f4652}
 .axp-answer strong,.axp-answer h4{color:#252525}
 .axp-answer h4{font-size:14px;margin:15px 0 8px}
 .axp-answer a{color:inherit;text-decoration:underline}
@@ -873,7 +885,6 @@ this.money(Math.round(price / 2));
 this.querySelector('[data-included-title]').textContent = d.title;
 const included = this.querySelector('[data-included-image]');
 if (included && d.src) included.src = d.src;
-this.querySelector('[data-product-link]').href = d.url;
 this.showPhoto(d);
 this.totals();
 }

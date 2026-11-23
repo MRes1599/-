@@ -1,19 +1,19 @@
 {% liquid
-assign anox_video_1 = 'https://cdn.shopify.com/videos/c/o/v/f9e18ad46ee6424c89fe824ccf542d73.mp4'
-assign anox_video_2 = 'https://cdn.shopify.com/videos/c/o/v/75a97438a2074c829a965cb7c363ecec.mp4'
-assign anox_video_3 = 'https://cdn.shopify.com/videos/c/o/v/59902ee29d3e42e3ab86e9b603973fb8.mp4'
-assign anox_video_4 = 'https://cdn.shopify.com/videos/c/o/v/297231843adf41ed87d86007d9c6dd77.mp4'
-assign anox_video_5 = 'https://cdn.shopify.com/videos/c/o/v/59902ee29d3e42e3ab86e9b603973fb8.mp4'
-assign anox_video_6 = 'https://cdn.shopify.com/videos/c/o/v/a9bfaeec207b40f1a335e5d36bf9ec85.mp4'
+assign anox_video_1 = 'https://cdn.shopify.com/videos/c/vp/f9e18ad46ee6424c89fe824ccf542d73/f9e18ad46ee6424c89fe824ccf542d73.HD-720p-4.5Mbps-99928043.mp4'
+assign anox_video_2 = 'https://cdn.shopify.com/videos/c/vp/75a97438a2074c829a965cb7c363ecec/75a97438a2074c829a965cb7c363ecec.HD-720p-4.5Mbps-99928039.mp4'
+assign anox_video_3 = 'https://cdn.shopify.com/videos/c/vp/59902ee29d3e42e3ab86e9b603973fb8/59902ee29d3e42e3ab86e9b603973fb8.HD-720p-1.6Mbps-96443166.mp4'
+assign anox_video_4 = 'https://cdn.shopify.com/videos/c/vp/297231843adf41ed87d86007d9c6dd77/297231843adf41ed87d86007d9c6dd77.SD-480p-0.9Mbps-95823571.mp4'
+assign anox_video_5 = 'https://cdn.shopify.com/videos/c/vp/59902ee29d3e42e3ab86e9b603973fb8/59902ee29d3e42e3ab86e9b603973fb8.HD-720p-1.6Mbps-96443166.mp4'
+assign anox_video_6 = 'https://cdn.shopify.com/videos/c/vp/a9bfaeec207b40f1a335e5d36bf9ec85/a9bfaeec207b40f1a335e5d36bf9ec85.HD-720p-4.5Mbps-99321298.mp4'
 assign anox_video_7 = ''
 assign anox_video_8 = ''
 
-assign anox_poster_1 = ''
-assign anox_poster_2 = ''
-assign anox_poster_3 = ''
-assign anox_poster_4 = ''
-assign anox_poster_5 = ''
-assign anox_poster_6 = ''
+assign anox_poster_1 = 'https://cdn.shopify.com/s/files/1/0997/9314/2043/files/preview_images/f9e18ad46ee6424c89fe824ccf542d73.thumbnail.0000000000.jpg?v=1793746149&width=360'
+assign anox_poster_2 = 'https://cdn.shopify.com/s/files/1/0997/9314/2043/files/preview_images/75a97438a2074c829a965cb7c363ecec.thumbnail.0000000000.jpg?v=1793746092&width=360'
+assign anox_poster_3 = 'https://cdn.shopify.com/s/files/1/0997/9314/2043/files/preview_images/59902ee29d3e42e3ab86e9b603973fb8.thumbnail.0000000000.jpg?v=1791199211&width=360'
+assign anox_poster_4 = 'https://cdn.shopify.com/s/files/1/0997/9314/2043/files/preview_images/297231843adf41ed87d86007d9c6dd77.thumbnail.0000000000.jpg?v=1790630019&width=360'
+assign anox_poster_5 = 'https://cdn.shopify.com/s/files/1/0997/9314/2043/files/preview_images/59902ee29d3e42e3ab86e9b603973fb8.thumbnail.0000000000.jpg?v=1791199211&width=360'
+assign anox_poster_6 = 'https://cdn.shopify.com/s/files/1/0997/9314/2043/files/preview_images/a9bfaeec207b40f1a335e5d36bf9ec85.thumbnail.0000000000.jpg?v=1793279392&width=360'
 assign anox_poster_7 = ''
 assign anox_poster_8 = ''
 
@@ -92,6 +92,17 @@ aria-labelledby="{{ uid }}-title"
 {% endif %}
 
 <h2 id="{{ uid }}-title">{{ p.title | escape }}</h2>
+
+{% liquid
+assign promo_pct = 0
+if chosen.compare_at_price > chosen.price
+assign promo_pct = chosen.compare_at_price | minus: chosen.price | times: 100.0 | divided_by: chosen.compare_at_price | round
+endif
+%}
+<p class="axp-promo" data-promo {% if promo_pct < 1 %}hidden{% endif %}>
+<span class="axp-promo-text">מבצע בלאק פריידיי</span>
+<span class="axp-promo-badge"><bdi data-promo-pct>{{ promo_pct }}%</bdi> הנחה</span>
+</p>
 
 <div class="axp-prices" aria-live="polite" aria-atomic="true">
 <s
@@ -434,12 +445,18 @@ aria-label="מחיר קודם"
 </summary>
 
 <div class="axp-answer">
-{{ p.description }}
-<p>
-<a data-product-link href="{{ chosen.url }}">
-לעמוד המוצר המלא
-</a>
-</p>
+<div class="axp-specs">
+<ul>
+<li><strong>מעקב 24/7:</strong> דופק, שינה, צעדים, קלוריות ופעילות יומית</li>
+<li><strong>עמיד IP68:</strong> מים, זיעה ואבק, גם במקלחת ובאימון</li>
+<li><strong>סוללה:</strong> עד 30 ימים בטעינה אחת, בהתאם לשימוש</li>
+<li><strong>אימונים:</strong> יותר מ־126 סוגים באפליקציה, עם GPS מובנה</li>
+<li><strong>עיצוב:</strong> {% if p.title contains 'V7' %}תצוגת שעה על הצמיד{% else %}ללא מסך{% endif %}, כל הנתונים באפליקציה לאנדרואיד ולאייפון</li>
+<li><strong>רצועות:</strong> סיליקון או ניילון, לכל גודל יד, מתחלפות בקלות</li>
+<li><strong>תקינה:</strong> עומד בתו התקן האירופאי CE</li>
+</ul>
+<p class="axp-specs-box"><strong>בקופסה:</strong> צמיד, רצועה, כבל טעינה מגנטי ומדריך חיבור לאפליקציה</p>
+</div>
 </div>
 </details>
 
@@ -558,7 +575,8 @@ src="{{ poster_url | escape }}"
 alt=""
 width="180"
 height="320"
-loading="lazy"
+loading="eager"
+decoding="async"
 >
 {% elsif video_url != blank %}
 <video
@@ -638,6 +656,10 @@ aria-label="סרטון ANOX"
 .axp h3{font-family:inherit;font-size:16px;font-weight:700;line-height:1.5;margin:0 0 12px;color:#182238}
 .axp-rating{font-size:12px;margin:0 0 12px}
 .axp-rating>span{color:#ffad35}
+.axp-promo{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:0 0 10px}
+.axp-promo-text{color:#111;font-size:17px;font-weight:800;line-height:1.3}
+.axp-promo-badge{display:inline-block;padding:4px 10px;border-radius:3px;background:#111;color:#fff;font-size:16px;font-weight:800;line-height:1.3;white-space:nowrap}
+@media(max-width:749px){.axp-promo-text{font-size:16px}.axp-promo-badge{font-size:15px}}
 .axp-prices{display:flex;align-items:baseline;flex-wrap:wrap;gap:9px;direction:rtl}
 .axp-prices>s{color:#ff202c;font-size:20px;font-weight:400;text-decoration-thickness:1px;white-space:nowrap;unicode-bidi:isolate}
 .axp-prices>span{color:#444;font-size:25px;font-weight:400;white-space:nowrap;unicode-bidi:isolate}
@@ -719,6 +741,12 @@ aria-label="סרטון ANOX"
 .axp-faq details[open]>summary>span{transform:rotate(45deg)}
 .axp-answer{padding:0 15px 20px;color:#717171;font-size:13px;line-height:1.85;overflow-wrap:anywhere;overflow-x:auto}
 .axp-answer p{margin:0 0 12px}
+.axp-specs{text-align:right;line-height:1.75}
+.axp .axp-specs ul{margin:0 0 12px;padding:0;padding-inline-start:18px;list-style:disc}
+.axp .axp-specs li{margin:0 0 7px;color:#3f4652}
+.axp .axp-specs li::marker{color:#171717}
+.axp .axp-specs li strong{color:#171717}
+.axp .axp-specs-box{margin:0;padding:10px 12px;border-radius:10px;background:#f6f7f9;color:#3f4652}
 .axp-answer strong,.axp-answer h4{color:#252525}
 .axp-answer h4{font-size:14px;margin:15px 0 8px}
 .axp-answer a{color:inherit;text-decoration:underline}
@@ -941,11 +969,16 @@ element.textContent = this.money(price);
 const previous = this.querySelector('[data-base-old]');
 previous.textContent = this.money(old);
 previous.hidden = old <= price;
+const promo = this.querySelector('[data-promo]');
+if (promo) {
+const pct = old > price ? Math.round((old - price) / old * 100) : 0;
+promo.hidden = pct < 1;
+promo.querySelector('[data-promo-pct]').textContent = pct + '%';
+}
 this.querySelector('[data-half]').textContent = this.money(Math.round(price / 2));
 this.querySelector('[data-included-title]').textContent = d.title;
 const included = this.querySelector('[data-included-image]');
 if (included && d.src) included.src = d.src;
-this.querySelector('[data-product-link]').href = d.url;
 this.showPhoto(d);
 this.totals();
 }
