@@ -388,13 +388,7 @@ aria-label="מחיר קודם"
 <li><strong>רצועות:</strong> סיליקון או ניילון, לכל גודל יד, מתחלפות בקלות</li>
 </ul>
 <p class="axp-specs-box"><strong>בקופסה:</strong> צמיד, רצועה וכבל טעינה מגנטי</p>
-<p class="axp-specs-note">למעקב אישי בלבד, לא תחליף לייעוץ רפואי.</p>
 </div>
-<p>
-<a data-product-link href="{{ chosen.url }}">
-לעמוד המוצר המלא
-</a>
-</p>
 </div>
 </details>
 
@@ -675,8 +669,7 @@ aria-label="סרטון ANOX"
 .axp .axp-specs li{margin:0 0 7px;color:#3f4652}
 .axp .axp-specs li::marker{color:#171717}
 .axp .axp-specs li strong{color:#171717}
-.axp .axp-specs-box{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:#f6f7f9;color:#3f4652}
-.axp .axp-specs-note{margin:0;font-size:11px;color:#8a909a}
+.axp .axp-specs-box{margin:0;padding:10px 12px;border-radius:10px;background:#f6f7f9;color:#3f4652}
 .axp-answer strong,.axp-answer h4{color:#252525}
 .axp-answer h4{font-size:14px;margin:15px 0 8px}
 .axp-answer a{color:inherit;text-decoration:underline}
@@ -892,7 +885,6 @@ this.money(Math.round(price / 2));
 this.querySelector('[data-included-title]').textContent = d.title;
 const included = this.querySelector('[data-included-image]');
 if (included && d.src) included.src = d.src;
-this.querySelector('[data-product-link]').href = d.url;
 this.showPhoto(d);
 this.totals();
 }
